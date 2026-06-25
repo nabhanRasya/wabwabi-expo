@@ -1,16 +1,20 @@
 {
   "expo": {
-    "name": "wabiwabi-nativewind",
-    "slug": "wabiwabi-nativewind",
+    "name": "WABIWABI",
+    "slug": "wabiwabi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "wabiwabinativewind",
+    "scheme": "wabiwabi",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "supportsTablet": false,
+      "bundleIdentifier": "com.wabiwabi.app",
+      "deploymentTarget": "16.4"
     },
     "android": {
+      "package": "com.wabiwabi.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -33,6 +37,16 @@
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
+        }
+      ],
+      "expo-status-bar",
+      "expo-image",
+      "expo-video",
+      "expo-secure-store",
+      [
+        "react-native-vector-icons",
+        {
+          "fonts": ["Ionicons.ttf", "MaterialIcons.ttf"]
         }
       ]
     ],
