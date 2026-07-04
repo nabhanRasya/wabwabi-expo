@@ -8,9 +8,17 @@ interface ServicesSelectorProps {
   onSelect: (service: StreamServer) => void;
 }
 
-export function ServicesSelector({ services, active, onSelect }: ServicesSelectorProps) {
+export function ServicesSelector({
+  services,
+  active,
+  onSelect,
+}: ServicesSelectorProps) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.content}
+    >
       {services.map((service, index) => {
         const selected =
           active?.post === service.post &&
@@ -23,11 +31,17 @@ export function ServicesSelector({ services, active, onSelect }: ServicesSelecto
           <Pressable
             key={`${service.name}-${service.quality}-${service.nume ?? service.iframe}-${service.serverType}-${index}`}
             onPress={() => onSelect(service)}
-            style={({ pressed }) => [styles.item, selected && styles.selected, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.item,
+              selected && styles.selected,
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={[styles.text, selected && styles.selectedText]} numberOfLines={1}>
-              {service.quality ? `${service.quality} ` : ""}
-              {service.name}
+            <Text
+              style={[styles.text, selected && styles.selectedText]}
+              numberOfLines={1}
+            >
+              {service.quality || "Resolusi"}
             </Text>
           </Pressable>
         );

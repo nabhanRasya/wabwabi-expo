@@ -11,22 +11,44 @@ import { ErrorState } from "../../src/components/ui/ErrorState";
 import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
 import { useEpisode, useServerEmbed } from "../../src/hooks/useEpisode";
 import type { StreamServer } from "../../src/types/anime";
-import { normalizeParam } from "../../src/utils/helpers";
+import { isMegaService, normalizeParam } from "../../src/utils/helpers";
 import { openExternalUrl } from "../../src/utils/openExternalUrl";
 
 export default function EpisodeRoute() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = normalizeParam(params.id);
   const { data, error, isLoading, refetch } = useEpisode(id);
-  const [selectedStreamKey, setSelectedStreamKey] = useState<string | null>(null);
+  const [selectedStreamKey, setSelectedStreamKey] = useState<string | null>(
+    null,
+  );
+
+  const megaStreams = useMemo(
+    () =>
+      (data?.streams ?? []).filter(
+        (stream) =>
+          isMegaService(stream.name) || isMegaService(stream.serverType),
+      ),
+    [data?.streams],
+  );
+
   const activeStream = useMemo(() => {
-    const streams = data?.streams ?? [];
-    return streams.find((stream) => streamKey(stream) === selectedStreamKey) ?? streams[0] ?? null;
-  }, [data?.streams, selectedStreamKey]);
-  const { data: embedData, isFetching: isFetchingEmbed } = useServerEmbed(activeStream);
+    return (
+      megaStreams.find((stream) => streamKey(stream) === selectedStreamKey) ??
+      megaStreams[0] ??
+      null
+    );
+  }, [megaStreams, selectedStreamKey]);
+
+  const { data: embedData, isFetching: isFetchingEmbed } =
+    useServerEmbed(activeStream);
 
   const currentDownloadLinks = useMemo(
-    () => data?.downloads.flatMap((group) => group.links.map((link) => ({ ...link, quality: group.quality }))) ?? [],
+    () =>
+      data?.downloads.flatMap((group) =>
+        group.links
+          .filter((link) => isMegaService(link.server))
+          .map((link) => ({ ...link, quality: group.quality })),
+      ) ?? [],
     [data?.downloads],
   );
 
@@ -52,9 +74,17 @@ export default function EpisodeRoute() {
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.playerHeader}>
-          <Pressable onPress={() => router.back()} style={styles.closeButton}>
+          <Pressable
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.push("/")
+            }
+            style={styles.closeButton}
+          >
             <Text style={styles.closeText}>Close</Text>
           </Pressable>
           <Text numberOfLines={2} style={styles.title}>
@@ -72,13 +102,13 @@ export default function EpisodeRoute() {
           )}
         </View>
 
-        {data.streams.length > 0 ? (
+        {megaStreams.length > 0 ? (
           <View style={styles.block}>
-            <Text style={styles.blockTitle}>Pilih Server</Text>
+            <Text style={styles.blockTitle}>Pilih Resolusi</Text>
             <ServicesSelector
               active={activeStream}
               onSelect={(stream) => setSelectedStreamKey(streamKey(stream))}
-              services={data.streams}
+              services={megaStreams}
             />
           </View>
         ) : null}
@@ -92,8 +122,9 @@ export default function EpisodeRoute() {
                 onPress={() => void openExternalUrl(link.url)}
                 style={styles.downloadRow}
               >
-                <Text style={styles.downloadTitle}>{link.quality}</Text>
-                <Text style={styles.downloadServer}>{link.server}</Text>
+                <Text style={styles.downloadTitle}>
+                  {link.quality || "Resolusi"}
+                </Text>
               </Pressable>
             ))}
           </View>

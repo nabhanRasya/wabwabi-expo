@@ -4,8 +4,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
-import type { ContentType, DownloadLink, StreamServer } from "../../types/anime";
-import { normalizeParam } from "../../utils/helpers";
+import type {
+  ContentType,
+  DownloadLink,
+  StreamServer,
+} from "../../types/anime";
+import { isMegaService, normalizeParam } from "../../utils/helpers";
 import { AnimeCard } from "../ui/AnimeCard";
 import { EmptyState } from "../ui/EmptyState";
 import { EpisodeCard } from "../ui/EpisodeCard";
@@ -30,7 +34,11 @@ export function DetailScreen({ type }: DetailScreenProps) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ErrorState
-          message={error instanceof Error ? error.message : "Cek koneksi internet lalu coba lagi."}
+          message={
+            error instanceof Error
+              ? error.message
+              : "Cek koneksi internet lalu coba lagi."
+          }
           onRetry={() => refetch()}
         />
       </SafeAreaView>
@@ -46,18 +54,39 @@ export function DetailScreen({ type }: DetailScreenProps) {
   }
 
   const firstEpisode = detail.episodes[0];
+  const megaStreams = detail.streams.filter(
+    (stream) => isMegaService(stream.name) || isMegaService(stream.serverType),
+  );
+  const megaDownloads = detail.downloads
+    .map((download) => ({
+      ...download,
+      links: download.links.filter((link) => isMegaService(link.server)),
+    }))
+    .filter((download) => download.links.length > 0);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
         <View style={styles.hero}>
           {detail.anime.thumbnail ? (
-            <Image source={{ uri: detail.anime.thumbnail }} style={styles.heroImage} contentFit="cover" />
+            <Image
+              source={{ uri: detail.anime.thumbnail }}
+              style={styles.heroImage}
+              contentFit="cover"
+            />
           ) : (
             <View style={[styles.heroImage, styles.heroFallback]} />
           )}
           <View style={styles.heroScrim} />
-          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.push("/"))} style={styles.backButton}>
+          <Pressable
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.push("/")
+            }
+            style={styles.backButton}
+          >
             <Text style={styles.backText}>Back</Text>
           </Pressable>
         </View>
@@ -66,9 +95,15 @@ export function DetailScreen({ type }: DetailScreenProps) {
           <Text style={styles.title}>{detail.anime.title}</Text>
 
           <View style={styles.metaRow}>
-            {!!detail.anime.score && detail.anime.score !== "-" && <InfoPill label={`Rating ${detail.anime.score}`} />}
-            {!!detail.anime.season && detail.anime.season !== "-" && <InfoPill label={detail.anime.season} />}
-            {!!detail.anime.duration && detail.anime.duration !== "-" && <InfoPill label={detail.anime.duration} />}
+            {!!detail.anime.score && detail.anime.score !== "-" && (
+              <InfoPill label={`Rating ${detail.anime.score}`} />
+            )}
+            {!!detail.anime.season && detail.anime.season !== "-" && (
+              <InfoPill label={detail.anime.season} />
+            )}
+            {!!detail.anime.duration && detail.anime.duration !== "-" && (
+              <InfoPill label={detail.anime.duration} />
+            )}
           </View>
 
           {detail.anime.genres && detail.anime.genres.length > 0 && (
@@ -88,10 +123,20 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
           {firstEpisode && (
             <Pressable
-              onPress={() => router.push({ pathname: "/episode/[id]", params: { id: firstEpisode.id } } as never)}
-              style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+              onPress={() =>
+                router.push({
+                  pathname: "/episode/[id]",
+                  params: { id: firstEpisode.id },
+                } as never)
+              }
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && styles.pressed,
+              ]}
             >
-              <Text style={styles.primaryButtonText}>Tonton {firstEpisode.title}</Text>
+              <Text style={styles.primaryButtonText}>
+                Tonton {firstEpisode.title}
+              </Text>
             </Pressable>
           )}
 
@@ -104,14 +149,20 @@ export function DetailScreen({ type }: DetailScreenProps) {
             </View>
           )}
 
-          {(detail.streams.length > 0 || detail.downloads.length > 0) && (
+          {(megaStreams.length > 0 || megaDownloads.length > 0) && (
             <View style={styles.block}>
               <SectionHeader title="Streaming & Download" />
-              {detail.streams.map((stream, index) => (
-                <StreamRow key={`${stream.name}-${stream.quality}-${index}`} stream={stream} />
+              {megaStreams.map((stream, index) => (
+                <StreamRow
+                  key={`${stream.name}-${stream.quality}-${index}`}
+                  stream={stream}
+                />
               ))}
-              {detail.downloads.map((download, index) => (
-                <DownloadRow key={`${download.quality}-${index}`} download={download} />
+              {megaDownloads.map((download, index) => (
+                <DownloadRow
+                  key={`${download.quality}-${index}`}
+                  download={download}
+                />
               ))}
             </View>
           )}
@@ -119,9 +170,17 @@ export function DetailScreen({ type }: DetailScreenProps) {
           {detail.recommendations.length > 0 && (
             <View style={styles.block}>
               <SectionHeader title="Rekomendasi" />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
                 {detail.recommendations.map((anime) => (
-                  <AnimeCard key={`${anime.type}-${anime.id}`} anime={anime} size="sm" />
+                  <AnimeCard
+                    key={`${anime.type}-${anime.id}`}
+                    anime={anime}
+                    size="sm"
+                  />
                 ))}
               </ScrollView>
             </View>
@@ -143,11 +202,7 @@ function InfoPill({ label }: { label: string }) {
 function StreamRow({ stream }: { stream: StreamServer }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoRowTitle}>
-        {stream.quality ? `${stream.quality} ` : ""}
-        {stream.name}
-      </Text>
-      <Text style={styles.infoRowMeta}>Streaming</Text>
+      <Text style={styles.infoRowTitle}>{stream.quality || "Resolusi"}</Text>
     </View>
   );
 }
@@ -155,8 +210,7 @@ function StreamRow({ stream }: { stream: StreamServer }) {
 function DownloadRow({ download }: { download: DownloadLink }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoRowTitle}>{download.quality}</Text>
-      <Text style={styles.infoRowMeta}>{download.links.length} link</Text>
+      <Text style={styles.infoRowTitle}>{download.quality || "Resolusi"}</Text>
     </View>
   );
 }

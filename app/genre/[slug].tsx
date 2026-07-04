@@ -18,7 +18,12 @@ export default function GenreRoute() {
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.push("/")
+          }
+          style={styles.backButton}
+        >
           <Text style={styles.backText}>{"<"}</Text>
         </Pressable>
         <View style={styles.headerCopy}>
@@ -29,7 +34,9 @@ export default function GenreRoute() {
         </View>
       </View>
 
-      {error ? <ErrorState message={error.message} onRetry={() => refetch()} /> : null}
+      {error ? (
+        <ErrorState message={error.message} onRetry={() => refetch()} />
+      ) : null}
       {isLoading ? (
         <LoadingSpinner />
       ) : (

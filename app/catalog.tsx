@@ -1,6 +1,13 @@
-import { useLocalSearchParams, router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AnimeCard } from "../src/components/ui/AnimeCard";
@@ -32,7 +39,12 @@ export default function CatalogScreen() {
     [initialTitle, params.order, params.status, params.type],
   );
 
-  const { data = [], error, isLoading, refetch } = usePaginationAnime(catalogParams);
+  const {
+    data = [],
+    error,
+    isLoading,
+    refetch,
+  } = usePaginationAnime(catalogParams);
 
   const setType = (type: string) => {
     router.setParams({ type: type || undefined });
@@ -41,7 +53,12 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.push("/")
+          }
+          style={styles.backButton}
+        >
           <Text style={styles.backText}>{"<"}</Text>
         </Pressable>
         <Text style={styles.title}>Catalog</Text>
@@ -50,7 +67,9 @@ export default function CatalogScreen() {
       <View style={styles.searchBox}>
         <TextInput
           onChangeText={setTitle}
-          onSubmitEditing={() => router.setParams({ title: title || undefined })}
+          onSubmitEditing={() =>
+            router.setParams({ title: title || undefined })
+          }
           placeholder="Filter judul..."
           placeholderTextColor="#64748b"
           returnKeyType="search"
@@ -68,7 +87,9 @@ export default function CatalogScreen() {
               onPress={() => setType(type.value)}
               style={[styles.filterButton, active && styles.filterButtonActive]}
             >
-              <Text style={[styles.filterText, active && styles.filterTextActive]}>
+              <Text
+                style={[styles.filterText, active && styles.filterTextActive]}
+              >
                 {type.label}
               </Text>
             </Pressable>
@@ -76,7 +97,9 @@ export default function CatalogScreen() {
         })}
       </View>
 
-      {error ? <ErrorState message={error.message} onRetry={() => refetch()} /> : null}
+      {error ? (
+        <ErrorState message={error.message} onRetry={() => refetch()} />
+      ) : null}
       {isLoading ? (
         <LoadingSpinner />
       ) : (

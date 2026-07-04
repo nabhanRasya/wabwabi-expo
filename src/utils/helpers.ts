@@ -1,4 +1,12 @@
 import type {
+  Anime,
+  ContentType,
+  DownloadLink,
+  Episode,
+  Genre,
+  StreamServer,
+} from "../types/anime";
+import type {
   DetailResponse,
   EpisodeResponse,
   HomeResponse,
@@ -11,15 +19,17 @@ import type {
   WinbuListItem,
   WinbuStreamItem,
 } from "../types/api";
-import type { Anime, ContentType, DownloadLink, Episode, Genre, StreamServer } from "../types/anime";
 
 const fallbackImage = "";
 
 export function normalizeParam(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
 
-export function normalizeContentType(value?: string, fallback: ContentType = "anime"): ContentType {
+export function normalizeContentType(
+  value?: string,
+  fallback: ContentType = "anime",
+): ContentType {
   const normalized = value?.toLowerCase().trim();
 
   if (normalized === "film" || normalized === "movie") return "film";
@@ -27,7 +37,8 @@ export function normalizeContentType(value?: string, fallback: ContentType = "an
   if (normalized === "tvshow" || normalized === "tv show") return "tvshow";
   if (normalized === "donghua") return "donghua";
   if (normalized === "others") return "others";
-  if (normalized === "anime" || normalized === "tv" || normalized === "ona") return "anime";
+  if (normalized === "anime" || normalized === "tv" || normalized === "ona")
+    return "anime";
 
   return fallback;
 }
@@ -46,9 +57,20 @@ export function slugFromUrl(url?: string): string {
   return clean.substring(clean.lastIndexOf("/") + 1);
 }
 
-export function toAnime(item: WinbuListItem, fallbackType: ContentType = "anime"): Anime {
+export function isMegaService(value?: string) {
+  return Boolean(value?.toLowerCase().includes("mega"));
+}
+
+export function toAnime(
+  item: WinbuListItem,
+  fallbackType: ContentType = "anime",
+): Anime {
   const title = item.title?.trim() || "Tanpa judul";
-  const id = item.id?.trim() || item.slug?.trim() || slugFromUrl(item.url || item.link) || titleToSlug(title);
+  const id =
+    item.id?.trim() ||
+    item.slug?.trim() ||
+    slugFromUrl(item.url || item.link) ||
+    titleToSlug(title);
   const type = normalizeContentType(item.type, fallbackType);
 
   return {
@@ -67,7 +89,10 @@ export function toAnime(item: WinbuListItem, fallbackType: ContentType = "anime"
   };
 }
 
-export function toAnimeList(items?: WinbuListItem[], fallbackType: ContentType = "anime"): Anime[] {
+export function toAnimeList(
+  items?: WinbuListItem[],
+  fallbackType: ContentType = "anime",
+): Anime[] {
   const seen = new Set<string>();
 
   return (items ?? [])
@@ -99,19 +124,28 @@ export function getHomeSections(response?: HomeResponse): HomeSection[] {
       key: "top10_anime",
       title: "Top 10 Anime",
       type: "anime",
-      href: { pathname: "/catalog", params: { order: "popular", type: "anime" } },
+      href: {
+        pathname: "/catalog",
+        params: { order: "popular", type: "anime" },
+      },
     },
     {
       key: "latest_anime",
       title: "Anime Terbaru",
       type: "anime",
-      href: { pathname: "/catalog", params: { order: "update", type: "anime" } },
+      href: {
+        pathname: "/catalog",
+        params: { order: "update", type: "anime" },
+      },
     },
     {
       key: "top10_film",
       title: "Film Populer",
       type: "film",
-      href: { pathname: "/catalog", params: { order: "popular", type: "film" } },
+      href: {
+        pathname: "/catalog",
+        params: { order: "popular", type: "film" },
+      },
     },
     {
       key: "latest_film",
@@ -123,7 +157,10 @@ export function getHomeSections(response?: HomeResponse): HomeSection[] {
       key: "latest_series",
       title: "Series Terbaru",
       type: "series",
-      href: { pathname: "/catalog", params: { order: "update", type: "series" } },
+      href: {
+        pathname: "/catalog",
+        params: { order: "update", type: "series" },
+      },
     },
     {
       key: "tv_show",
@@ -159,9 +196,14 @@ export function toGenres(items?: WinbuGenre[]): Genre[] {
   return (items ?? []).map(toGenre).filter((genre) => genre.slug.length > 0);
 }
 
-export function toEpisode(item: WinbuEpisodeItem, index = 0, animeId?: string): Episode {
+export function toEpisode(
+  item: WinbuEpisodeItem,
+  index = 0,
+  animeId?: string,
+): Episode {
   const title = item.title?.trim() || `Episode ${index + 1}`;
-  const id = item.id?.trim() || slugFromUrl(item.url || item.link) || titleToSlug(title);
+  const id =
+    item.id?.trim() || slugFromUrl(item.url || item.link) || titleToSlug(title);
   const number = Number(title.match(/\d+/)?.[0]);
 
   return {
@@ -207,7 +249,9 @@ export function normalizeDetail(
 
   const info = data.info;
   const type = normalizeContentType(response?.type || info?.type, fallbackType);
-  const episodes = (data.episodes ?? []).map((episode, index) => toEpisode(episode, index, id));
+  const episodes = (data.episodes ?? []).map((episode, index) =>
+    toEpisode(episode, index, id),
+  );
   const anime: Anime = {
     id,
     title: data.title || "Tanpa judul",
@@ -236,9 +280,14 @@ export function normalizeDetail(
   };
 }
 
-export function normalizeEpisode(response: EpisodeResponse | undefined, id: string) {
+export function normalizeEpisode(
+  response: EpisodeResponse | undefined,
+  id: string,
+) {
   const data = response?.data;
-  const allEpisodes = (data?.all_episodes ?? []).map((episode, index) => toEpisode(episode, index));
+  const allEpisodes = (data?.all_episodes ?? []).map((episode, index) =>
+    toEpisode(episode, index),
+  );
 
   return {
     id,
