@@ -11,7 +11,11 @@ import { ErrorState } from "../../src/components/ui/ErrorState";
 import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
 import { useEpisode, useServerEmbed } from "../../src/hooks/useEpisode";
 import type { StreamServer } from "../../src/types/anime";
-import { isMegaService, normalizeParam } from "../../src/utils/helpers";
+import {
+  getMegaDownloadItems,
+  isMegaService,
+  normalizeParam,
+} from "../../src/utils/helpers";
 import { openExternalUrl } from "../../src/utils/openExternalUrl";
 
 export default function EpisodeRoute() {
@@ -43,12 +47,7 @@ export default function EpisodeRoute() {
     useServerEmbed(activeStream);
 
   const currentDownloadLinks = useMemo(
-    () =>
-      data?.downloads.flatMap((group) =>
-        group.links
-          .filter((link) => isMegaService(link.server))
-          .map((link) => ({ ...link, quality: group.quality })),
-      ) ?? [],
+    () => getMegaDownloadItems(data?.downloads),
     [data?.downloads],
   );
 
@@ -118,13 +117,14 @@ export default function EpisodeRoute() {
             <Text style={styles.blockTitle}>Download</Text>
             {currentDownloadLinks.slice(0, 16).map((link) => (
               <Pressable
-                key={`${link.quality}-${link.server}-${link.url}`}
+                key={`${link.quality}-${link.url}`}
                 onPress={() => void openExternalUrl(link.url)}
                 style={styles.downloadRow}
               >
                 <Text style={styles.downloadTitle}>
-                  {link.quality || "Resolusi"}
+                  Download {link.quality || "Resolusi"}
                 </Text>
+                <Text style={styles.downloadServer}>MEGA</Text>
               </Pressable>
             ))}
           </View>

@@ -4,12 +4,14 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
-import type {
-  ContentType,
-  DownloadLink,
-  StreamServer,
-} from "../../types/anime";
-import { isMegaService, normalizeParam } from "../../utils/helpers";
+import type { ContentType, StreamServer } from "../../types/anime";
+import {
+  getMegaDownloadItems,
+  isMegaService,
+  normalizeParam,
+} from "../../utils/helpers";
+import type { MegaDownloadItem } from "../../utils/helpers";
+import { openExternalUrl } from "../../utils/openExternalUrl";
 import { AnimeCard } from "../ui/AnimeCard";
 import { EmptyState } from "../ui/EmptyState";
 import { EpisodeCard } from "../ui/EpisodeCard";
@@ -57,12 +59,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
   const megaStreams = detail.streams.filter(
     (stream) => isMegaService(stream.name) || isMegaService(stream.serverType),
   );
-  const megaDownloads = detail.downloads
-    .map((download) => ({
-      ...download,
-      links: download.links.filter((link) => isMegaService(link.server)),
-    }))
-    .filter((download) => download.links.length > 0);
+  const megaDownloads = getMegaDownloadItems(detail.downloads);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -207,11 +204,15 @@ function StreamRow({ stream }: { stream: StreamServer }) {
   );
 }
 
-function DownloadRow({ download }: { download: DownloadLink }) {
+function DownloadRow({ download }: { download: MegaDownloadItem }) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoRowTitle}>{download.quality || "Resolusi"}</Text>
-    </View>
+    <Pressable
+      onPress={() => void openExternalUrl(download.url)}
+      style={({ pressed }) => [styles.infoRow, pressed && styles.pressed]}
+    >
+      <Text style={styles.infoRowTitle}>Download {download.quality || "Resolusi"}</Text>
+      <Text style={styles.infoRowMeta}>MEGA</Text>
+    </Pressable>
   );
 }
 

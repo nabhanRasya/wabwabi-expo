@@ -58,7 +58,45 @@ export function slugFromUrl(url?: string): string {
 }
 
 export function isMegaService(value?: string) {
-  return Boolean(value?.toLowerCase().includes("mega"));
+  const normalized = value?.toLowerCase().trim();
+  if (!normalized) return false;
+
+  return (
+    normalized === "mega" ||
+    normalized === "mega.nz" ||
+    normalized === "mega.co.nz" ||
+    normalized.startsWith("mega.nz/") ||
+    normalized.startsWith("mega.co.nz/") ||
+    /^https?:\/\/([^/]+\.)?mega\.(co\.)?nz(\/|$)/.test(normalized)
+  );
+}
+
+export interface MegaDownloadItem {
+  quality: string;
+  server: string;
+  url: string;
+}
+
+export function getMegaDownloadItems(downloads?: DownloadLink[]): MegaDownloadItem[] {
+  const seenQualities = new Set<string>();
+
+  return (downloads ?? [])
+    .flatMap((download) =>
+      download.links
+        .filter((link) => isMegaService(link.server) || isMegaService(link.url))
+        .map((link) => ({
+          quality: download.quality || "Resolusi",
+          server: "MEGA",
+          url: link.url,
+        })),
+    )
+    .filter((item) => {
+      const qualityKey = item.quality.toLowerCase();
+      if (seenQualities.has(qualityKey)) return false;
+
+      seenQualities.add(qualityKey);
+      return true;
+    });
 }
 
 export function toAnime(
