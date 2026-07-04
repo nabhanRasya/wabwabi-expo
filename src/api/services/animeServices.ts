@@ -27,7 +27,14 @@ export const animeService = {
   getEpisodeDetail: (id: string) => get<EpisodeResponse>(ENDPOINTS.EPISODE_DETAIL(id)),
 
   getServerEmbed: (params: { post: string; nume?: string; iframe?: string; type: string }) =>
-    get<ServerEmbedResponse>(ENDPOINTS.SERVER, { params }),
+    get<ServerEmbedResponse>(ENDPOINTS.SERVER, {
+      params: {
+        post: params.post,
+        type: params.type,
+        ...(params.nume ? { nume: params.nume } : {}),
+        ...(params.iframe ? { iframe: params.iframe } : {}),
+      },
+    }),
 
   search: (query: string, page = 1) =>
     get<ListResponse>(ENDPOINTS.SEARCH, { params: { q: query, page } }),

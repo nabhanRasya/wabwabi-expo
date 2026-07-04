@@ -1,4 +1,3 @@
-import { openBrowserAsync } from "expo-web-browser";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -13,6 +12,7 @@ import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
 import { useEpisode, useServerEmbed } from "../../src/hooks/useEpisode";
 import type { StreamServer } from "../../src/types/anime";
 import { normalizeParam } from "../../src/utils/helpers";
+import { openExternalUrl } from "../../src/utils/openExternalUrl";
 
 export default function EpisodeRoute() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -89,7 +89,7 @@ export default function EpisodeRoute() {
             {currentDownloadLinks.slice(0, 16).map((link) => (
               <Pressable
                 key={`${link.quality}-${link.server}-${link.url}`}
-                onPress={() => openBrowserAsync(link.url)}
+                onPress={() => void openExternalUrl(link.url)}
                 style={styles.downloadRow}
               >
                 <Text style={styles.downloadTitle}>{link.quality}</Text>
@@ -113,7 +113,7 @@ export default function EpisodeRoute() {
 }
 
 function streamKey(stream: StreamServer) {
-  return `${stream.post ?? ""}:${stream.nume ?? ""}:${stream.quality ?? ""}:${stream.name}`;
+  return `${stream.post ?? ""}:${stream.nume ?? stream.iframe ?? ""}:${stream.serverType ?? ""}:${stream.quality ?? ""}:${stream.name}`;
 }
 
 const styles = StyleSheet.create({

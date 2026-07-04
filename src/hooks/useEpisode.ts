@@ -15,13 +15,14 @@ export function useEpisode(id: string) {
 
 export function useServerEmbed(stream?: StreamServer | null) {
   return useQuery({
-    enabled: Boolean(stream?.post && stream?.nume && stream?.type),
+    enabled: Boolean(stream?.post && (stream?.nume || stream?.iframe) && stream?.serverType),
     queryFn: () =>
       animeService.getServerEmbed({
+        iframe: stream?.iframe,
         nume: stream?.nume ?? "",
         post: stream?.post ?? "",
-        type: stream?.type ?? "schtml",
+        type: stream?.serverType ?? "schtml",
       }),
-    queryKey: ["server-embed", stream?.post, stream?.nume, stream?.type],
+    queryKey: ["server-embed", stream?.post, stream?.nume, stream?.iframe, stream?.serverType],
   });
 }

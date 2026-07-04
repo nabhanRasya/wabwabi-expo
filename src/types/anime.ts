@@ -51,6 +51,8 @@ export interface StreamServer {
   type?: "embed" | "direct";
   post?: string;
   nume?: string;
+  iframe?: string;
+  serverType?: string;
 }
 
 export interface DownloadLink {

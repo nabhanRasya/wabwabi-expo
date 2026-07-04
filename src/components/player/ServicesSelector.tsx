@@ -13,11 +13,15 @@ export function ServicesSelector({ services, active, onSelect }: ServicesSelecto
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.content}>
       {services.map((service, index) => {
         const selected =
-          active?.post === service.post && active?.nume === service.nume && active?.quality === service.quality;
+          active?.post === service.post &&
+          active?.nume === service.nume &&
+          active?.iframe === service.iframe &&
+          active?.serverType === service.serverType &&
+          active?.quality === service.quality;
 
         return (
           <Pressable
-            key={`${service.name}-${service.quality}-${service.nume}-${index}`}
+            key={`${service.name}-${service.quality}-${service.nume ?? service.iframe}-${service.serverType}-${index}`}
             onPress={() => onSelect(service)}
             style={({ pressed }) => [styles.item, selected && styles.selected, pressed && styles.pressed]}
           >

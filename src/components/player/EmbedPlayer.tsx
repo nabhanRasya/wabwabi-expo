@@ -1,5 +1,6 @@
-import { openBrowserAsync } from "expo-web-browser";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { openExternalUrl } from "../../utils/openExternalUrl";
 
 interface EmbedPlayerProps {
   url?: string;
@@ -8,10 +9,12 @@ interface EmbedPlayerProps {
 export function EmbedPlayer({ url }: EmbedPlayerProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Streaming embed siap dibuka</Text>
-      <Text style={styles.message}>Player embed dibuka lewat browser bawaan agar tetap berjalan di iOS, Android, dan web.</Text>
+      <Text style={styles.title}>{url ? "Player siap" : "Player belum tersedia"}</Text>
+      <Text style={styles.message}>
+        {url ? "Embed dari server pilihan sudah tersedia." : "Coba pilih server lain atau muat ulang episode."}
+      </Text>
       {url && (
-        <Pressable onPress={() => openBrowserAsync(url)} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
+        <Pressable onPress={() => void openExternalUrl(url)} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
           <Text style={styles.buttonText}>Buka Player</Text>
         </Pressable>
       )}

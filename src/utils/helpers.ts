@@ -68,7 +68,19 @@ export function toAnime(item: WinbuListItem, fallbackType: ContentType = "anime"
 }
 
 export function toAnimeList(items?: WinbuListItem[], fallbackType: ContentType = "anime"): Anime[] {
-  return (items ?? []).map((item) => toAnime(item, fallbackType)).filter((item) => item.id.length > 0);
+  const seen = new Set<string>();
+
+  return (items ?? [])
+    .map((item) => toAnime(item, fallbackType))
+    .filter((item) => {
+      if (!item.id) return false;
+
+      const key = `${item.type}-${item.id}`;
+      if (seen.has(key)) return false;
+
+      seen.add(key);
+      return true;
+    });
 }
 
 export function getListItems(response?: ListResponse): Anime[] {
@@ -179,7 +191,9 @@ function toStreams(items?: WinbuStreamItem[]): StreamServer[] {
     quality: item.resolution,
     type: "embed",
     post: item.data?.post,
-    nume: item.data?.nume ?? item.data?.iframe,
+    nume: item.data?.nume,
+    iframe: item.data?.iframe,
+    serverType: item.data?.type || "schtml",
   }));
 }
 
