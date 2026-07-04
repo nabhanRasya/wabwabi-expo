@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { animeService } from "../../src/api/services/animeServices";
@@ -30,9 +30,9 @@ export default function HomeScreen() {
   const hero = sections.find((section) => section.key === "latest_anime")?.items[0] ?? sections[0]?.items[0];
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerClassName="pb-7"
         refreshControl={
           <RefreshControl
             onRefresh={refetch}
@@ -42,21 +42,21 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Image source={require("@/assets/images/logo-glow.png")} style={styles.logo} />
-          <View style={styles.headerCopy}>
-            <Text style={styles.brand}>WABIWABI</Text>
-            <Text style={styles.subtitle}>Anime, film, dan series terbaru</Text>
+        <View className="flex-row items-center gap-3 px-4 pt-3">
+          <Image source={require("@/assets/images/logo-glow.png")} className="h-[46px] w-[46px]" />
+          <View className="flex-1">
+            <Text className="text-2xl font-black text-white">WABIWABI</Text>
+            <Text className="mt-0.5 text-[13px] font-semibold text-text-secondary">Anime, film, dan series terbaru</Text>
           </View>
         </View>
 
         {hero ? <HeroBanner anime={hero} /> : null}
 
         {sections.map((section) => (
-          <View key={section.key} style={styles.section}>
+          <View key={section.key} className="mt-6">
             <SectionHeader href={section.href} title={section.title} />
             <ScrollView
-              contentContainerStyle={styles.rail}
+              contentContainerClassName="pl-4 pr-1"
               horizontal
               showsHorizontalScrollIndicator={false}
             >
@@ -70,46 +70,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  brand: {
-    color: "#ffffff",
-    fontSize: 24,
-    fontWeight: "900",
-    letterSpacing: 0,
-  },
-  content: {
-    paddingBottom: 28,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  headerCopy: {
-    flex: 1,
-  },
-  logo: {
-    height: 46,
-    width: 46,
-  },
-  rail: {
-    paddingLeft: 16,
-    paddingRight: 4,
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  section: {
-    marginTop: 24,
-  },
-  subtitle: {
-    color: "#94a3b8",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 2,
-  },
-});

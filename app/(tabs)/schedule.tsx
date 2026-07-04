@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AnimeCard } from "../../src/components/ui/AnimeCard";
@@ -34,12 +34,12 @@ export default function ScheduleScreen() {
   const { data = [], error, isLoading, refetch } = useSchedule(activeDay);
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Jadwal Rilis</Text>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
+      <View className="px-4 pt-3">
+        <Text className="text-[28px] font-black text-white">Jadwal Rilis</Text>
       </View>
       <ScrollView
-        contentContainerStyle={styles.days}
+        contentContainerClassName="px-4 py-3"
         horizontal
         showsHorizontalScrollIndicator={false}
       >
@@ -49,9 +49,11 @@ export default function ScheduleScreen() {
             <Pressable
               key={day.key}
               onPress={() => setActiveDay(day.key)}
-              style={[styles.dayButton, selected && styles.dayButtonActive]}
+              className={`mr-2 h-10 w-[54px] items-center justify-center rounded-lg border ${
+                selected ? "border-primary bg-primary" : "border-border bg-surface"
+              }`}
             >
-              <Text style={[styles.dayText, selected && styles.dayTextActive]}>{day.label}</Text>
+              <Text className={`text-xs font-black ${selected ? "text-white" : "text-text-secondary"}`}>{day.label}</Text>
             </Pressable>
           );
         })}
@@ -62,8 +64,8 @@ export default function ScheduleScreen() {
         <LoadingSpinner />
       ) : (
         <FlatList
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.grid}
+          columnWrapperClassName="gap-3"
+          contentContainerClassName="px-4 pb-7"
           data={data}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={<EmptyState title="Jadwal kosong" />}
@@ -75,53 +77,3 @@ export default function ScheduleScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  dayButton: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 40,
-    justifyContent: "center",
-    marginRight: 8,
-    width: 54,
-  },
-  dayButtonActive: {
-    backgroundColor: "#e94560",
-    borderColor: "#e94560",
-  },
-  dayText: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  dayTextActive: {
-    color: "#ffffff",
-  },
-  days: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  grid: {
-    paddingBottom: 28,
-    paddingHorizontal: 16,
-  },
-  gridRow: {
-    gap: 12,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "900",
-  },
-});

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface VideoPlayerProps {
   uri?: string;
@@ -6,37 +6,13 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ uri }: VideoPlayerProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Direct video belum tersedia</Text>
+    <View className="min-h-[220px] flex-1 items-center justify-center bg-[#050505] px-6">
+      <Text className="text-center text-[17px] font-black text-white">Direct video belum tersedia</Text>
       {!!uri && (
-        <Text style={styles.message} numberOfLines={2}>
+        <Text className="mt-2 text-center text-xs leading-[18px] text-text-secondary" numberOfLines={2}>
           {uri}
         </Text>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    minHeight: 220,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#050505",
-    paddingHorizontal: 24,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "900",
-    textAlign: "center",
-  },
-  message: {
-    color: "#94a3b8",
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: "center",
-    marginTop: 8,
-  },
-});

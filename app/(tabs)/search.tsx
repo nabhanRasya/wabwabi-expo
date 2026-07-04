@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AnimeCard } from "../../src/components/ui/AnimeCard";
@@ -20,22 +20,22 @@ export default function SearchScreen() {
   const { data = [], error, isFetching, refetch } = useSearch(debouncedQuery);
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Cari</Text>
-        <View style={styles.searchBox}>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
+      <View className="px-4 pt-3">
+        <Text className="text-[28px] font-black text-white">Cari</Text>
+        <View className="mt-3.5 flex-row items-center rounded-lg border border-border bg-surface pl-3.5">
           <TextInput
             autoCapitalize="none"
+            className="min-h-12 flex-1 text-[15px] text-text-primary"
             onChangeText={setQuery}
             placeholder="Judul anime, film, series..."
             placeholderTextColor="#64748b"
             returnKeyType="search"
-            style={styles.input}
             value={query}
           />
           {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} style={styles.clearButton}>
-              <Text style={styles.clearText}>x</Text>
+            <Pressable onPress={() => setQuery("")} className="h-9 w-9 items-center justify-center active:opacity-70">
+              <Text className="text-lg font-black text-text-secondary">x</Text>
             </Pressable>
           ) : null}
         </View>
@@ -48,8 +48,8 @@ export default function SearchScreen() {
         <EmptyState title="Mulai pencarian" message="Masukkan minimal dua karakter." />
       ) : (
         <FlatList
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.grid}
+          columnWrapperClassName="gap-3"
+          contentContainerClassName="px-4 pb-7"
           data={data}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
@@ -63,53 +63,3 @@ export default function SearchScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  clearButton: {
-    alignItems: "center",
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  clearText: {
-    color: "#94a3b8",
-    fontSize: 18,
-    fontWeight: "900",
-  },
-  grid: {
-    paddingBottom: 28,
-    paddingHorizontal: 16,
-  },
-  gridRow: {
-    gap: 12,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  input: {
-    color: "#e2e8f0",
-    flex: 1,
-    fontSize: 15,
-    minHeight: 48,
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  searchBox: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: "row",
-    marginTop: 14,
-    paddingLeft: 14,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "900",
-  },
-});

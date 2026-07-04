@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AnimeCard } from "../../src/components/ui/AnimeCard";
@@ -16,19 +16,19 @@ export default function GenreRoute() {
   const title = slug.replace(/-/g, " ");
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={styles.header}>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
+      <View className="flex-row items-center gap-3 px-4 py-3">
         <Pressable
           onPress={() =>
             router.canGoBack() ? router.back() : router.push("/")
           }
-          style={styles.backButton}
+          className="h-10 w-10 items-center justify-center rounded-lg bg-surface active:opacity-70"
         >
-          <Text style={styles.backText}>{"<"}</Text>
+          <Text className="text-xl font-black text-white">{"<"}</Text>
         </Pressable>
-        <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>Genre</Text>
-          <Text numberOfLines={1} style={styles.title}>
+        <View className="flex-1">
+          <Text className="text-xs font-extrabold uppercase text-text-secondary">Genre</Text>
+          <Text numberOfLines={1} className="capitalize text-[25px] font-black text-white">
             {title}
           </Text>
         </View>
@@ -41,8 +41,8 @@ export default function GenreRoute() {
         <LoadingSpinner />
       ) : (
         <FlatList
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.grid}
+          columnWrapperClassName="gap-3"
+          contentContainerClassName="px-4 pb-7"
           data={data}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={<EmptyState title="Genre kosong" />}
@@ -54,52 +54,3 @@ export default function GenreRoute() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  backButton: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderRadius: 8,
-    height: 40,
-    justifyContent: "center",
-    width: 40,
-  },
-  backText: {
-    color: "#ffffff",
-    fontSize: 20,
-    fontWeight: "900",
-  },
-  grid: {
-    paddingBottom: 28,
-    paddingHorizontal: 16,
-  },
-  gridRow: {
-    gap: 12,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerCopy: {
-    flex: 1,
-  },
-  kicker: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 25,
-    fontWeight: "900",
-    textTransform: "capitalize",
-  },
-});

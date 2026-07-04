@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, ScrollView, Text } from "react-native";
 
 import type { StreamServer } from "../../types/anime";
 
@@ -17,7 +17,7 @@ export function ServicesSelector({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.content}
+      contentContainerClassName="gap-2 px-4"
     >
       {services.map((service, index) => {
         const selected =
@@ -31,14 +31,12 @@ export function ServicesSelector({
           <Pressable
             key={`${service.name}-${service.quality}-${service.nume ?? service.iframe}-${service.serverType}-${index}`}
             onPress={() => onSelect(service)}
-            style={({ pressed }) => [
-              styles.item,
-              selected && styles.selected,
-              pressed && styles.pressed,
-            ]}
+            className={`min-h-[38px] max-w-[150px] justify-center rounded-lg border px-3 active:opacity-70 ${
+              selected ? "border-primary bg-primary" : "border-border bg-surface"
+            }`}
           >
             <Text
-              style={[styles.text, selected && styles.selectedText]}
+              className={`text-xs font-extrabold ${selected ? "text-white" : "text-text-secondary"}`}
               numberOfLines={1}
             >
               {service.quality || "Resolusi"}
@@ -49,35 +47,3 @@ export function ServicesSelector({
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  item: {
-    minHeight: 38,
-    maxWidth: 150,
-    justifyContent: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#2d2d3d",
-    backgroundColor: "#1e1e2e",
-    paddingHorizontal: 12,
-  },
-  selected: {
-    borderColor: "#e94560",
-    backgroundColor: "#e94560",
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  text: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  selectedText: {
-    color: "#ffffff",
-  },
-});

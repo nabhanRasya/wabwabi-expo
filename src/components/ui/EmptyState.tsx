@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface EmptyStateProps {
   title: string;
@@ -7,31 +7,9 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, message }: EmptyStateProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      {message ? <Text style={styles.message}>{message}</Text> : null}
+    <View className="items-center justify-center px-6 py-12">
+      <Text className="text-center text-base font-bold text-text-primary">{title}</Text>
+      {message ? <Text className="mt-2 text-center text-[13px] leading-5 text-text-secondary">{message}</Text> : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  },
-  message: {
-    color: "#94a3b8",
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: 8,
-    textAlign: "center",
-  },
-  title: {
-    color: "#e2e8f0",
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-});

@@ -1,6 +1,11 @@
+import { cssInterop } from "nativewind";
+import type { ComponentProps, ComponentType } from "react";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { WebView } from "react-native-webview";
+import { ActivityIndicator, Text, View } from "react-native";
+import { WebView as NativeWebView } from "react-native-webview";
+
+const WebView = NativeWebView as ComponentType<ComponentProps<typeof NativeWebView> & { className?: string }>;
+cssInterop(WebView, { className: "style" });
 
 interface EmbedPlayerProps {
   url?: string;
@@ -15,7 +20,7 @@ export function EmbedPlayer({ url }: EmbedPlayerProps) {
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 w-full overflow-hidden bg-[#050505]">
       <WebView
         allowsFullscreenVideo
         allowsInlineMediaPlayback
@@ -26,14 +31,14 @@ export function EmbedPlayer({ url }: EmbedPlayerProps) {
         onError={() => setFailedUrl(url)}
         originWhitelist={["*"]}
         renderLoading={() => (
-          <View style={[StyleSheet.absoluteFill, styles.loading]}>
+          <View className="absolute inset-0 items-center justify-center bg-[#050505]">
             <ActivityIndicator color="#e94560" />
           </View>
         )}
         setSupportMultipleWindows={false}
         source={{ uri: url }}
         startInLoadingState
-        style={styles.webview}
+        className="flex-1 bg-[#050505]"
       />
     </View>
   );
@@ -41,45 +46,9 @@ export function EmbedPlayer({ url }: EmbedPlayerProps) {
 
 function PlayerFallback({ message }: { message: string }) {
   return (
-    <View style={[styles.container, styles.fallback]}>
-      <Text style={styles.title}>Player belum tersedia</Text>
-      <Text style={styles.message}>{message}</Text>
+    <View className="flex-1 w-full items-center justify-center overflow-hidden bg-[#050505] px-6">
+      <Text className="text-center text-[17px] font-black text-white">Player belum tersedia</Text>
+      <Text className="mt-2 text-center text-[13px] leading-[19px] text-text-secondary">{message}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#050505",
-    overflow: "hidden",
-    width: "100%",
-  },
-  fallback: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  loading: {
-    alignItems: "center",
-    backgroundColor: "#050505",
-    justifyContent: "center",
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "900",
-    textAlign: "center",
-  },
-  message: {
-    color: "#94a3b8",
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  webview: {
-    backgroundColor: "#050505",
-    flex: 1,
-  },
-});

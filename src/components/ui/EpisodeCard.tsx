@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { Episode } from "../../types/anime";
 
@@ -11,59 +11,17 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
   return (
     <Pressable
       onPress={() => router.push({ pathname: "/episode/[id]", params: { id: episode.id } } as never)}
-      style={[styles.container, episode.active && styles.active]}
+      className={`mb-2.5 min-h-16 flex-row items-center gap-3 rounded-lg border bg-background-card px-3 py-2.5 active:opacity-70 ${
+        episode.active ? "border-primary" : "border-border"
+      }`}
     >
-      <View style={styles.numberBox}>
-        <Text style={styles.number}>{episode.number ?? "EP"}</Text>
+      <View className="h-9 w-11 items-center justify-center rounded-lg bg-primary">
+        <Text className="text-xs font-black text-white">{episode.number ?? "EP"}</Text>
       </View>
-      <Text numberOfLines={2} style={styles.title}>
+      <Text numberOfLines={2} className="flex-1 text-sm font-bold leading-5 text-text-primary">
         {episode.title}
       </Text>
-      <Text style={styles.play}>Play</Text>
+      <Text className="text-xs font-black text-primary">Play</Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  active: {
-    borderColor: "#e94560",
-  },
-  container: {
-    alignItems: "center",
-    backgroundColor: "#1a1a2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 10,
-    minHeight: 64,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  number: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  numberBox: {
-    alignItems: "center",
-    backgroundColor: "#e94560",
-    borderRadius: 8,
-    height: 36,
-    justifyContent: "center",
-    width: 44,
-  },
-  play: {
-    color: "#e94560",
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  title: {
-    color: "#e2e8f0",
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "700",
-    lineHeight: 20,
-  },
-});

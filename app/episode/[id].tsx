@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmbedPlayer } from "../../src/components/player/EmbedPlayer";
@@ -57,7 +57,7 @@ export default function EpisodeRoute() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView className="flex-1 bg-background">
         <ErrorState message={error.message} onRetry={() => refetch()} />
       </SafeAreaView>
     );
@@ -65,33 +65,33 @@ export default function EpisodeRoute() {
 
   if (!data) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView className="flex-1 bg-background">
         <EmptyState title="Episode tidak ditemukan" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerClassName="pb-8"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.playerHeader}>
+        <View className="flex-row items-center gap-3 p-4">
           <Pressable
             onPress={() =>
               router.canGoBack() ? router.back() : router.push("/")
             }
-            style={styles.closeButton}
+            className="h-[38px] items-center justify-center rounded-lg bg-surface px-3 active:opacity-70"
           >
-            <Text style={styles.closeText}>Close</Text>
+            <Text className="text-xs font-black text-white">Close</Text>
           </Pressable>
-          <Text numberOfLines={2} style={styles.title}>
+          <Text numberOfLines={2} className="flex-1 text-lg font-black leading-6 text-white">
             {data.title}
           </Text>
         </View>
 
-        <View style={styles.player}>
+        <View className="aspect-video w-full bg-[#050505]">
           {isFetchingEmbed ? (
             <LoadingSpinner />
           ) : activeStream ? (
@@ -102,8 +102,8 @@ export default function EpisodeRoute() {
         </View>
 
         {megaStreams.length > 0 ? (
-          <View style={styles.block}>
-            <Text style={styles.blockTitle}>Pilih Resolusi</Text>
+          <View className="mt-[22px]">
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Pilih Resolusi</Text>
             <ServicesSelector
               active={activeStream}
               onSelect={(stream) => setSelectedStreamKey(streamKey(stream))}
@@ -113,26 +113,26 @@ export default function EpisodeRoute() {
         ) : null}
 
         {currentDownloadLinks.length > 0 ? (
-          <View style={styles.block}>
-            <Text style={styles.blockTitle}>Download</Text>
+          <View className="mt-[22px]">
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Download</Text>
             {currentDownloadLinks.slice(0, 16).map((link) => (
               <Pressable
                 key={`${link.quality}-${link.url}`}
                 onPress={() => void openExternalUrl(link.url)}
-                style={styles.downloadRow}
+                className="mx-4 mb-2.5 min-h-[52px] flex-row items-center justify-between rounded-lg border border-border bg-background-card px-3 active:opacity-70"
               >
-                <Text style={styles.downloadTitle}>
+                <Text className="text-sm font-black text-text-primary">
                   Download {link.quality || "Resolusi"}
                 </Text>
-                <Text style={styles.downloadServer}>MEGA</Text>
+                <Text className="text-xs font-extrabold text-text-secondary">MEGA</Text>
               </Pressable>
             ))}
           </View>
         ) : null}
 
         {data.allEpisodes.length > 0 ? (
-          <View style={styles.block}>
-            <Text style={styles.blockTitle}>Daftar Episode</Text>
+          <View className="mt-[22px]">
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Daftar Episode</Text>
             {data.allEpisodes.slice(0, 80).map((episode) => (
               <EpisodeCard episode={episode} key={episode.id} />
             ))}
@@ -146,77 +146,3 @@ export default function EpisodeRoute() {
 function streamKey(stream: StreamServer) {
   return `${stream.post ?? ""}:${stream.nume ?? stream.iframe ?? ""}:${stream.serverType ?? ""}:${stream.quality ?? ""}:${stream.name}`;
 }
-
-const styles = StyleSheet.create({
-  block: {
-    marginTop: 22,
-  },
-  blockTitle: {
-    color: "#e2e8f0",
-    fontSize: 17,
-    fontWeight: "900",
-    marginBottom: 12,
-    paddingHorizontal: 16,
-  },
-  closeButton: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderRadius: 8,
-    height: 38,
-    justifyContent: "center",
-    paddingHorizontal: 12,
-  },
-  closeText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  content: {
-    paddingBottom: 32,
-  },
-  downloadRow: {
-    alignItems: "center",
-    backgroundColor: "#1a1a2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-    marginHorizontal: 16,
-    minHeight: 52,
-    paddingHorizontal: 12,
-  },
-  downloadServer: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  downloadTitle: {
-    color: "#e2e8f0",
-    fontSize: 14,
-    fontWeight: "900",
-  },
-  player: {
-    aspectRatio: 16 / 9,
-    backgroundColor: "#050505",
-    width: "100%",
-  },
-  playerHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    padding: 16,
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  title: {
-    color: "#ffffff",
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "900",
-    lineHeight: 24,
-  },
-});

@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
@@ -34,7 +34,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView className="flex-1 bg-background">
         <ErrorState
           message={
             error instanceof Error
@@ -49,7 +49,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
   if (!detail) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView className="flex-1 bg-background">
         <EmptyState title="Detail tidak ditemukan" />
       </SafeAreaView>
     );
@@ -62,36 +62,36 @@ export function DetailScreen({ type }: DetailScreenProps) {
   const megaDownloads = getMegaDownloadItems(detail.downloads);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerClassName="pb-8"
       >
-        <View style={styles.hero}>
+        <View className="h-80 bg-background-card">
           {detail.anime.thumbnail ? (
             <Image
               source={{ uri: detail.anime.thumbnail }}
-              style={styles.heroImage}
+              className="h-full w-full"
               contentFit="cover"
             />
           ) : (
-            <View style={[styles.heroImage, styles.heroFallback]} />
+            <View className="h-full w-full bg-background-elevated" />
           )}
-          <View style={styles.heroScrim} />
+          <View className="absolute inset-0 bg-black/30" />
           <Pressable
             onPress={() =>
               router.canGoBack() ? router.back() : router.push("/")
             }
-            style={styles.backButton}
+            className="absolute left-4 top-4 min-h-[38px] justify-center rounded-lg bg-background/80 px-3.5 active:opacity-70"
           >
-            <Text style={styles.backText}>Back</Text>
+            <Text className="text-[13px] font-black text-white">Back</Text>
           </Pressable>
         </View>
 
-        <View style={styles.body}>
-          <Text style={styles.title}>{detail.anime.title}</Text>
+        <View className="px-4 pt-[18px]">
+          <Text className="text-[25px] font-black leading-8 text-white">{detail.anime.title}</Text>
 
-          <View style={styles.metaRow}>
+          <View className="mt-3 flex-row flex-wrap gap-2">
             {!!detail.anime.score && detail.anime.score !== "-" && (
               <InfoPill label={`Rating ${detail.anime.score}`} />
             )}
@@ -104,7 +104,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
           </View>
 
           {detail.anime.genres && detail.anime.genres.length > 0 && (
-            <View style={styles.genreWrap}>
+            <View className="mt-4 flex-row flex-wrap">
               {detail.anime.genres.map((genre) => (
                 <GenreBadge key={genre.slug} genre={genre} />
               ))}
@@ -112,9 +112,9 @@ export function DetailScreen({ type }: DetailScreenProps) {
           )}
 
           {!!detail.anime.synopsis && (
-            <View style={styles.block}>
-              <Text style={styles.blockTitle}>Sinopsis</Text>
-              <Text style={styles.paragraph}>{detail.anime.synopsis}</Text>
+            <View className="mt-6">
+              <Text className="mb-2 text-[17px] font-black text-text-primary">Sinopsis</Text>
+              <Text className="text-sm leading-[22px] text-[#b6c2d1]">{detail.anime.synopsis}</Text>
             </View>
           )}
 
@@ -126,19 +126,16 @@ export function DetailScreen({ type }: DetailScreenProps) {
                   params: { id: firstEpisode.id },
                 } as never)
               }
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.pressed,
-              ]}
+              className="mt-5 min-h-12 items-center justify-center rounded-lg bg-primary px-3.5 active:opacity-70"
             >
-              <Text style={styles.primaryButtonText}>
+              <Text className="text-center text-sm font-black text-white">
                 Tonton {firstEpisode.title}
               </Text>
             </Pressable>
           )}
 
           {detail.episodes.length > 0 && (
-            <View style={styles.block}>
+            <View className="mt-6">
               <SectionHeader title={`Episode (${detail.episodes.length})`} />
               {detail.episodes.slice(0, 40).map((episode) => (
                 <EpisodeCard key={episode.id} episode={episode} />
@@ -147,7 +144,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
           )}
 
           {(megaStreams.length > 0 || megaDownloads.length > 0) && (
-            <View style={styles.block}>
+            <View className="mt-6">
               <SectionHeader title="Streaming & Download" />
               {megaStreams.map((stream, index) => (
                 <StreamRow
@@ -165,12 +162,12 @@ export function DetailScreen({ type }: DetailScreenProps) {
           )}
 
           {detail.recommendations.length > 0 && (
-            <View style={styles.block}>
+            <View className="mt-6">
               <SectionHeader title="Rekomendasi" />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalList}
+                contentContainerClassName="pr-1"
               >
                 {detail.recommendations.map((anime) => (
                   <AnimeCard
@@ -190,16 +187,16 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
 function InfoPill({ label }: { label: string }) {
   return (
-    <View style={styles.infoPill}>
-      <Text style={styles.infoPillText}>{label}</Text>
+    <View className="min-h-[30px] justify-center rounded-lg bg-surface px-2.5">
+      <Text className="text-xs font-extrabold text-text-secondary">{label}</Text>
     </View>
   );
 }
 
 function StreamRow({ stream }: { stream: StreamServer }) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoRowTitle}>{stream.quality || "Resolusi"}</Text>
+    <View className="mb-2.5 min-h-[52px] flex-row items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3">
+      <Text className="flex-1 text-sm font-extrabold text-text-primary">{stream.quality || "Resolusi"}</Text>
     </View>
   );
 }
@@ -208,142 +205,10 @@ function DownloadRow({ download }: { download: MegaDownloadItem }) {
   return (
     <Pressable
       onPress={() => void openExternalUrl(download.url)}
-      style={({ pressed }) => [styles.infoRow, pressed && styles.pressed]}
+      className="mb-2.5 min-h-[52px] flex-row items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 active:opacity-70"
     >
-      <Text style={styles.infoRowTitle}>Download {download.quality || "Resolusi"}</Text>
-      <Text style={styles.infoRowMeta}>MEGA</Text>
+      <Text className="flex-1 text-sm font-extrabold text-text-primary">Download {download.quality || "Resolusi"}</Text>
+      <Text className="text-xs font-extrabold text-text-secondary">MEGA</Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#0f0f0f",
-  },
-  content: {
-    paddingBottom: 32,
-  },
-  hero: {
-    height: 320,
-    backgroundColor: "#1a1a2e",
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-  },
-  heroFallback: {
-    backgroundColor: "#16213e",
-  },
-  heroScrim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, 0.32)",
-  },
-  backButton: {
-    position: "absolute",
-    left: 16,
-    top: 16,
-    minHeight: 38,
-    justifyContent: "center",
-    borderRadius: 8,
-    backgroundColor: "rgba(15, 15, 15, 0.78)",
-    paddingHorizontal: 14,
-  },
-  backText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "900",
-  },
-  body: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 25,
-    lineHeight: 32,
-    fontWeight: "900",
-  },
-  metaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 12,
-  },
-  infoPill: {
-    minHeight: 30,
-    justifyContent: "center",
-    borderRadius: 8,
-    backgroundColor: "#1e1e2e",
-    paddingHorizontal: 10,
-  },
-  infoPillText: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  genreWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 16,
-  },
-  block: {
-    marginTop: 24,
-  },
-  blockTitle: {
-    color: "#e2e8f0",
-    fontSize: 17,
-    fontWeight: "900",
-    marginBottom: 8,
-  },
-  paragraph: {
-    color: "#b6c2d1",
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  primaryButton: {
-    minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-    backgroundColor: "#e94560",
-    marginTop: 20,
-    paddingHorizontal: 14,
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "900",
-    textAlign: "center",
-  },
-  horizontalList: {
-    paddingRight: 4,
-  },
-  infoRow: {
-    minHeight: 52,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#2d2d3d",
-    backgroundColor: "#1e1e2e",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingHorizontal: 12,
-    marginBottom: 10,
-  },
-  infoRowTitle: {
-    flex: 1,
-    color: "#e2e8f0",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  infoRowMeta: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-});

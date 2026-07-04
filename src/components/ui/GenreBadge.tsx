@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, Text } from "react-native";
 
 import type { Genre } from "../../types/anime";
 
@@ -13,46 +13,12 @@ export function GenreBadge({ genre, selected = false, onPress }: GenreBadgeProps
   return (
     <Pressable
       onPress={onPress ?? (() => router.push({ pathname: "/genre/[slug]", params: { slug: genre.slug } } as never))}
-      style={({ pressed }) => [styles.badge, selected && styles.selected, pressed && styles.pressed]}
+      className={`mb-2 mr-2 min-h-8 flex-row items-center gap-1.5 rounded-full border px-3 active:opacity-70 ${
+        selected ? "border-primary bg-primary" : "border-border bg-surface"
+      }`}
     >
-      <Text style={[styles.text, selected && styles.selectedText]}>{genre.name}</Text>
-      {genre.count ? <Text style={[styles.count, selected && styles.selectedText]}>{genre.count}</Text> : null}
+      <Text className={`text-xs font-bold ${selected ? "text-white" : "text-slate-300"}`}>{genre.name}</Text>
+      {genre.count ? <Text className={`text-[11px] font-bold ${selected ? "text-white" : "text-text-muted"}`}>{genre.count}</Text> : null}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 999,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 6,
-    marginBottom: 8,
-    marginRight: 8,
-    minHeight: 32,
-    paddingHorizontal: 12,
-  },
-  count: {
-    color: "#64748b",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  selected: {
-    backgroundColor: "#e94560",
-    borderColor: "#e94560",
-  },
-  selectedText: {
-    color: "#ffffff",
-  },
-  text: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-});

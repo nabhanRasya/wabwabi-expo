@@ -1,21 +1,9 @@
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 export function LoadingSpinner({ fullScreen = false }: { fullScreen?: boolean }) {
   return (
-    <View style={[styles.container, fullScreen && styles.fullScreen]}>
+    <View className={`${fullScreen ? "flex-1 bg-background" : ""} items-center justify-center py-8`}>
       <ActivityIndicator color="#e94560" size="large" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 32,
-  },
-  fullScreen: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-});

@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -51,21 +50,22 @@ export default function CatalogScreen() {
   };
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={styles.header}>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
+      <View className="flex-row items-center gap-3 px-4 pt-3">
         <Pressable
           onPress={() =>
             router.canGoBack() ? router.back() : router.push("/")
           }
-          style={styles.backButton}
+          className="h-10 w-10 items-center justify-center rounded-lg bg-surface active:opacity-70"
         >
-          <Text style={styles.backText}>{"<"}</Text>
+          <Text className="text-xl font-black text-white">{"<"}</Text>
         </Pressable>
-        <Text style={styles.title}>Catalog</Text>
+        <Text className="text-[28px] font-black text-white">Catalog</Text>
       </View>
 
-      <View style={styles.searchBox}>
+      <View className="mx-4 mt-3.5 rounded-lg border border-border bg-surface px-3.5">
         <TextInput
+          className="min-h-12 flex-1 text-[15px] text-text-primary"
           onChangeText={setTitle}
           onSubmitEditing={() =>
             router.setParams({ title: title || undefined })
@@ -73,23 +73,22 @@ export default function CatalogScreen() {
           placeholder="Filter judul..."
           placeholderTextColor="#64748b"
           returnKeyType="search"
-          style={styles.input}
           value={title}
         />
       </View>
 
-      <View style={styles.filterRow}>
+      <View className="flex-row flex-wrap gap-2 px-4 py-3">
         {TYPES.map((type) => {
           const active = (catalogParams.type ?? "") === type.value;
           return (
             <Pressable
               key={type.label}
               onPress={() => setType(type.value)}
-              style={[styles.filterButton, active && styles.filterButtonActive]}
+              className={`rounded-full border px-3.5 py-2.5 ${
+                active ? "border-primary bg-primary" : "border-border bg-surface"
+              }`}
             >
-              <Text
-                style={[styles.filterText, active && styles.filterTextActive]}
-              >
+              <Text className={`text-xs font-extrabold ${active ? "text-white" : "text-text-secondary"}`}>
                 {type.label}
               </Text>
             </Pressable>
@@ -104,8 +103,8 @@ export default function CatalogScreen() {
         <LoadingSpinner />
       ) : (
         <FlatList
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.grid}
+          columnWrapperClassName="gap-3"
+          contentContainerClassName="px-4 pb-7"
           data={data}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={<EmptyState title="Catalog kosong" />}
@@ -117,84 +116,3 @@ export default function CatalogScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  backButton: {
-    alignItems: "center",
-    backgroundColor: "#1e1e2e",
-    borderRadius: 8,
-    height: 40,
-    justifyContent: "center",
-    width: 40,
-  },
-  backText: {
-    color: "#ffffff",
-    fontSize: 20,
-    fontWeight: "900",
-  },
-  filterButton: {
-    backgroundColor: "#1e1e2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-  },
-  filterButtonActive: {
-    backgroundColor: "#e94560",
-    borderColor: "#e94560",
-  },
-  filterRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  filterText: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  filterTextActive: {
-    color: "#ffffff",
-  },
-  grid: {
-    paddingBottom: 28,
-    paddingHorizontal: 16,
-  },
-  gridRow: {
-    gap: 12,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  input: {
-    color: "#e2e8f0",
-    flex: 1,
-    fontSize: 15,
-    minHeight: 48,
-  },
-  safeArea: {
-    backgroundColor: "#0f0f0f",
-    flex: 1,
-  },
-  searchBox: {
-    backgroundColor: "#1e1e2e",
-    borderColor: "#2d2d3d",
-    borderRadius: 8,
-    borderWidth: 1,
-    marginHorizontal: 16,
-    marginTop: 14,
-    paddingHorizontal: 14,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "900",
-  },
-});
