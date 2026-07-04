@@ -2,22 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { animeService } from "../api/services/animeServices";
 import type { ContentType } from "../types/anime";
-
-export function useAnimeDetail(id: string, type: ContentType = "anime") {
-  return useQuery({
-    queryKey: ["detail", type, id],
-    queryFn: () => {
-      if (type === "film") return animeService.getFilmDetail(id);
-      if (type === "series") return animeService.getSeriesDetail(id);
-      return animeService.getAnimeDetail(id);
-    },
-    enabled: id.length > 0,
-  });
-}
-import { useQuery } from "@tanstack/react-query";
-
-import { animeService } from "../api/services/animeServices";
-import type { ContentType } from "../types/anime";
 import { normalizeDetail } from "../utils/helpers";
 
 export function useAnimeDetail(id: string, type: ContentType = "anime") {

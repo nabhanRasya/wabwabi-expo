@@ -1,4 +1,4 @@
-import type { Anime, ContentType, DownloadLink, Episode, Genre, StreamServer } from "./anime";
+import type { Anime, ContentType, DownloadLink, Episode, StreamServer } from "./anime";
 
 export interface WinbuPagination {
   current_page?: number;

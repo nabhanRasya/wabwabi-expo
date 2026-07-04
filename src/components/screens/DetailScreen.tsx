@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
 import type { ContentType, DownloadLink, StreamServer } from "../../types/anime";
-import { normalizeDetail, normalizeParam } from "../../utils/helpers";
+import { normalizeParam } from "../../utils/helpers";
 import { AnimeCard } from "../ui/AnimeCard";
 import { EmptyState } from "../ui/EmptyState";
 import { EpisodeCard } from "../ui/EpisodeCard";
@@ -22,7 +22,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = normalizeParam(params.id);
   const { data, error, isError, isLoading, refetch } = useAnimeDetail(id, type);
-  const detail = normalizeDetail(data, id, type);
+  const detail = data;
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
@@ -88,7 +88,7 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
           {firstEpisode && (
             <Pressable
-              onPress={() => router.push({ pathname: "/episode/[id]", params: { id: firstEpisode.id } })}
+              onPress={() => router.push({ pathname: "/episode/[id]", params: { id: firstEpisode.id } } as never)}
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
               <Text style={styles.primaryButtonText}>Tonton {firstEpisode.title}</Text>
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#16213e",
   },
   heroScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.32)",
   },
   backButton: {

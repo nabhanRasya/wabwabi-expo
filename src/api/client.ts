@@ -1,8 +1,8 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { AxiosError, AxiosResponse, create } from "axios";
 
 const BASE_URL = "https://www.sankavollerei.web.id/";
 
-export const apiClient = axios.create({
+export const apiClient = create({
   baseURL: BASE_URL,
   timeout: 15000,
   headers: {

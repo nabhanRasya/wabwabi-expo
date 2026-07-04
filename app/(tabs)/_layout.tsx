@@ -1,11 +1,12 @@
 import { Tabs } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import type { ColorValue } from "react-native";
 
 function TabIcon({
   color,
   name,
 }: {
-  color: string;
+  color: ColorValue;
   name: {
     ios: "house.fill" | "magnifyingglass" | "calendar" | "person.crop.circle";
     android: "home" | "search" | "calendar_month" | "person";

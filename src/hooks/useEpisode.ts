@@ -1,17 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { animeService } from "../api/services/animeServices";
-
-export function useEpisode(id: string) {
-  return useQuery({
-    queryKey: ["episode", id],
-    queryFn: () => animeService.getEpisodeDetail(id),
-    enabled: id.length > 0,
-  });
-}
-import { useQuery } from "@tanstack/react-query";
-
-import { animeService } from "../api/services/animeServices";
 import type { StreamServer } from "../types/anime";
 import { normalizeEpisode } from "../utils/helpers";
 
