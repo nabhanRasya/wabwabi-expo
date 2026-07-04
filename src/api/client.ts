@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 const BASE_URL = "https://www.sankavollerei.web.id/";
 
@@ -11,8 +11,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
+  (response: AxiosResponse) => response.data,
+  (error: AxiosError<{ message?: string }>) => {
     if (error.response) {
       throw new Error(error.response.data?.message || "Server Error");
     }

@@ -12,7 +12,7 @@ export default function RootLayout() {
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <StatusBar style="light" />
+          <StatusBar backgroundColor="#0f0f0f" style="light" />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen
@@ -24,20 +24,25 @@ export default function RootLayout() {
               options={{ animation: "slide_from_right" }}
             />
             <Stack.Screen
+              name="series/[id]"
+              options={{ animation: "slide_from_right" }}
+            />
+            <Stack.Screen
               name="episode/[id]"
               options={{
-                animation: "slide_from_right",
+                animation: "slide_from_bottom",
                 presentation: "fullScreenModal",
               }}
             />
             <Stack.Screen
-              name="genre/[id]"
+              name="genre/[slug]"
               options={{ animation: "slide_from_right" }}
             />
             <Stack.Screen
-              name="catalog/[id]"
+              name="catalog"
               options={{ animation: "slide_from_right" }}
             />
+            <Stack.Screen name="+not-found" />
           </Stack>
         </QueryClientProvider>
       </SafeAreaProvider>

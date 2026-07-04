@@ -1,42 +1,56 @@
 import { apiClient } from "../client";
 import { ENDPOINTS } from "../endpoints";
+import type { AxiosRequestConfig } from "axios";
+import type {
+  DetailResponse,
+  EpisodeResponse,
+  GenresResponse,
+  HomeResponse,
+  ListResponse,
+  ServerEmbedResponse,
+} from "../../types/api";
+
+async function get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const response = await apiClient.get<T>(url, config);
+  return response as unknown as T;
+}
 
 export const animeService = {
-  getHome: () => apiClient.get(ENDPOINTS.HOME),
+  getHome: () => get<HomeResponse>(ENDPOINTS.HOME),
 
-  getAnimeDetail: (id: string) => apiClient.get(ENDPOINTS.ANIME_DETAIL(id)),
+  getAnimeDetail: (id: string) => get<DetailResponse>(ENDPOINTS.ANIME_DETAIL(id)),
 
-  getSeriesDetail: (id: string) => apiClient.get(ENDPOINTS.SERIES_DETAIL(id)),
+  getSeriesDetail: (id: string) => get<DetailResponse>(ENDPOINTS.SERIES_DETAIL(id)),
 
-  getFilmDetail: (id: string) => apiClient.get(ENDPOINTS.FILM_DETAIL(id)),
+  getFilmDetail: (id: string) => get<DetailResponse>(ENDPOINTS.FILM_DETAIL(id)),
 
-  getEpisodeDetail: (id: string) => apiClient.get(ENDPOINTS.EPISODE_DETAIL(id)),
+  getEpisodeDetail: (id: string) => get<EpisodeResponse>(ENDPOINTS.EPISODE_DETAIL(id)),
 
-  getServerEmbed: (params: { post: string; iframe: number; type: string }) =>
-    apiClient.get(ENDPOINTS.SERVER, { params }),
+  getServerEmbed: (params: { post: string; nume?: string; iframe?: string; type: string }) =>
+    get<ServerEmbedResponse>(ENDPOINTS.SERVER, { params }),
 
   search: (query: string, page = 1) =>
-    apiClient.get(ENDPOINTS.SEARCH, { params: { q: query, page } }),
+    get<ListResponse>(ENDPOINTS.SEARCH, { params: { q: query, page } }),
 
   getOngoing: (page = 1) =>
-    apiClient.get(ENDPOINTS.ONGOING, { params: { page } }),
+    get<ListResponse>(ENDPOINTS.ONGOING, { params: { page } }),
 
   getCompleted: (page = 1) =>
-    apiClient.get(ENDPOINTS.COMPLETED, { params: { page } }),
+    get<ListResponse>(ENDPOINTS.COMPLETED, { params: { page } }),
 
   getPopular: (page = 1) =>
-    apiClient.get(ENDPOINTS.POPULAR, { params: { page } }),
+    get<ListResponse>(ENDPOINTS.POPULAR, { params: { page } }),
 
   getLatest: (page = 1) =>
-    apiClient.get(ENDPOINTS.LATEST, { params: { page } }),
+    get<ListResponse>(ENDPOINTS.LATEST, { params: { page } }),
 
-  getAllGenres: () => apiClient.get(ENDPOINTS.ALL_GENRES),
+  getAllGenres: () => get<GenresResponse>(ENDPOINTS.ALL_GENRES),
 
   getByGenre: (slug: string, page = 1) =>
-    apiClient.get(ENDPOINTS.ANIME_BY_GENRE(slug), { params: { page } }),
+    get<ListResponse>(ENDPOINTS.ANIME_BY_GENRE(slug), { params: { page } }),
 
   getSchedule: (day = "all") =>
-    apiClient.get(ENDPOINTS.SCHEDULE, { params: { day } }),
+    get<ListResponse>(ENDPOINTS.SCHEDULE, { params: { day } }),
 
   getCatalog: (params: {
     title?: string;
@@ -44,5 +58,5 @@ export const animeService = {
     order?: string;
     type?: string;
     status?: string;
-  }) => apiClient.get(ENDPOINTS.CATALOG, { params }),
+  }) => get<ListResponse>(ENDPOINTS.CATALOG, { params }),
 };

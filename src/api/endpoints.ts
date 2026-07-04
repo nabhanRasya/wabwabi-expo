@@ -11,7 +11,7 @@ export const ENDPOINTS = {
   FILM_DETAIL: (id: string) => `/anime/winbu/film/${id}`,
   EPISODE_DETAIL: (id: string) => `/anime/winbu/episode/${id}`,
 
-  // Server Embed - ?post=ID%iframe=1%type=...
+  // Server Embed - ?post=ID&nume=1&type=schtml
   SERVER: "/anime/winbu/server",
 
   // List konten (support ?page=1)

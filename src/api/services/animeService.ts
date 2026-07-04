@@ -1,0 +1,1 @@
+export { animeService } from "./animeServices";

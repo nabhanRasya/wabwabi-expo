@@ -40,15 +40,7 @@
         }
       ],
       "expo-status-bar",
-      "expo-image",
-      "expo-video",
-      "expo-secure-store",
-      [
-        "react-native-vector-icons",
-        {
-          "fonts": ["Ionicons.ttf", "MaterialIcons.ttf"]
-        }
-      ]
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,
