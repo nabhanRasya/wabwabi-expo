@@ -49,6 +49,7 @@ export interface StreamServer {
   quality?: string;
   url?: string;
   type?: "embed" | "direct";
+  serverId?: string;
   post?: string;
   nume?: string;
   iframe?: string;

@@ -13,12 +13,30 @@ import type {
   HomeSection,
   ListResponse,
   NormalizedDetail,
+  ServerEmbedResponse,
   WinbuDownloadItem,
   WinbuEpisodeItem,
   WinbuGenre,
   WinbuListItem,
   WinbuStreamItem,
 } from "../types/api";
+import type {
+  NewAnimeDetailResponse,
+  NewAnimeEpisodeItem,
+  NewAnimeGenre,
+  NewAnimeItem,
+  NewAnimeListResponse,
+  NewAnimeSynopsis,
+  NewBatchResponse,
+  NewDownloadCollection,
+  NewEpisodeLink,
+  NewEpisodeResponse,
+  NewGenreListResponse,
+  NewHomeResponse,
+  NewScheduleResponse,
+  NewServerResponse,
+  NewStreamQuality,
+} from "../types/newAnimeApi";
 
 const fallbackImage = "";
 
@@ -334,6 +352,319 @@ export function normalizeEpisode(
     downloads: toDownloads(data?.downloads),
     navigation: data?.navigation,
     allEpisodes,
+  };
+}
+
+function synopsisToText(
+  value?: string | NewAnimeSynopsis,
+): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === "string") return value.trim() || undefined;
+
+  const paragraphs = value.paragraphs
+    ?.map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return paragraphs && paragraphs.length > 0
+    ? paragraphs.join("\n\n")
+    : undefined;
+}
+
+function toNewAnime(
+  item: NewAnimeItem,
+  fallbackType: ContentType = "anime",
+): Anime {
+  const title = item.title?.trim() || "Tanpa judul";
+  const id =
+    item.animeId?.trim() ||
+    item.slug?.trim() ||
+    slugFromUrl(item.href || item.url || item.otakudesuUrl) ||
+    titleToSlug(title);
+  const synopsis = synopsisToText(item.synopsis);
+  const episode =
+    typeof item.episodes === "number"
+      ? `${item.episodes} eps`
+      : item.latestReleaseDate || item.lastReleaseDate || item.releaseDay;
+
+  return {
+    id,
+    title,
+    slug: id,
+    thumbnail: item.poster || fallbackImage,
+    type: fallbackType,
+    status: item.status,
+    score: item.score,
+    episode,
+    time: item.releaseDay,
+    description: synopsis,
+    synopsis,
+    season: item.season,
+    studio: item.studios,
+    genres: toNewGenres(item.genreList),
+  };
+}
+
+function toNewAnimeList(
+  items?: NewAnimeItem[],
+  fallbackType: ContentType = "anime",
+): Anime[] {
+  const seen = new Set<string>();
+
+  return (items ?? [])
+    .map((item) => toNewAnime(item, fallbackType))
+    .filter((item) => {
+      if (!item.id) return false;
+
+      const key = `${item.type}-${item.id}`;
+      if (seen.has(key)) return false;
+
+      seen.add(key);
+      return true;
+    });
+}
+
+function getNewAnimeItems(response?: NewAnimeListResponse): NewAnimeItem[] {
+  const data = response?.data;
+
+  if (Array.isArray(data)) return data;
+
+  return (
+    data?.animeList ??
+    data?.list?.flatMap((group) => group.animeList ?? []) ??
+    response?.results ??
+    []
+  );
+}
+
+export function getNewListItems(response?: NewAnimeListResponse): Anime[] {
+  return toNewAnimeList(getNewAnimeItems(response));
+}
+
+export function getNewHomeSections(response?: NewHomeResponse): HomeSection[] {
+  const sections: {
+    key: string;
+    title: string;
+    items?: NewAnimeItem[];
+    href: HomeSection["href"];
+  }[] = [
+    {
+      key: "ongoing",
+      title: "Sedang Tayang",
+      items: response?.data?.ongoing?.animeList,
+      href: {
+        pathname: "/catalog",
+        params: { status: "ongoing" },
+      },
+    },
+    {
+      key: "completed",
+      title: "Anime Tamat",
+      items: response?.data?.completed?.animeList,
+      href: {
+        pathname: "/catalog",
+        params: { status: "completed" },
+      },
+    },
+  ];
+
+  return sections
+    .map((section) => ({
+      key: section.key,
+      title: section.title,
+      href: section.href,
+      items: toNewAnimeList(section.items),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+export function getNewScheduleItems(
+  response: NewScheduleResponse | undefined,
+  day: string,
+): Anime[] {
+  const normalizedDay = day.toLowerCase().trim();
+  const schedule = response?.data ?? [];
+  const selectedDays =
+    normalizedDay === "all"
+      ? schedule
+      : schedule.filter(
+          (item) => item.day?.toLowerCase().trim() === normalizedDay,
+        );
+  const items = selectedDays.flatMap((item) => item.anime_list ?? []);
+
+  return toNewAnimeList(items);
+}
+
+function toNewGenre(item: NewAnimeGenre): Genre {
+  const name = item.title?.trim() || "Genre";
+  const slug =
+    item.genreId?.trim() ||
+    slugFromUrl(item.href || item.otakudesuUrl) ||
+    titleToSlug(name);
+
+  return {
+    id: slug,
+    name,
+    slug,
+  };
+}
+
+export function toNewGenres(items?: NewAnimeGenre[]): Genre[] {
+  return (items ?? [])
+    .map(toNewGenre)
+    .filter((genre) => genre.slug.length > 0);
+}
+
+export function getNewGenreItems(response?: NewGenreListResponse): Genre[] {
+  return toNewGenres(response?.data?.genreList);
+}
+
+function toNewEpisode(
+  item: NewAnimeEpisodeItem,
+  index = 0,
+  animeId?: string,
+  activeId?: string,
+): Episode {
+  const title =
+    item.title?.trim() ||
+    (typeof item.eps === "number" ? `Episode ${item.eps}` : `Episode ${index + 1}`);
+  const id =
+    item.episodeId?.trim() ||
+    slugFromUrl(item.href || item.otakudesuUrl) ||
+    titleToSlug(title);
+  const number =
+    item.eps ??
+    Number(title.match(/\d+/)?.[0]);
+
+  return {
+    id,
+    title,
+    animeId,
+    active: activeId ? id === activeId : undefined,
+    aired: item.date,
+    number: Number.isFinite(number) ? number : index + 1,
+  };
+}
+
+function toNewEpisodeLink(item?: NewEpisodeLink | null) {
+  if (!item?.episodeId) return null;
+
+  return {
+    id: item.episodeId,
+    title: item.title,
+    url: item.href || item.otakudesuUrl,
+  };
+}
+
+function toNewStreams(qualities?: NewStreamQuality[]): StreamServer[] {
+  return (qualities ?? []).flatMap((quality) =>
+    (quality.serverList ?? [])
+      .filter((server) => server.serverId)
+      .map((server) => {
+        const name = server.title?.trim() || "Server";
+
+        return {
+          name,
+          quality: quality.title?.trim(),
+          type: "embed" as const,
+          serverId: server.serverId,
+          url: server.href,
+          serverType: name,
+        };
+      }),
+  );
+}
+
+function getNewDownloadQualities(downloads?: NewDownloadCollection) {
+  return [
+    ...(downloads?.qualities ?? []),
+    ...(downloads?.formats ?? []).flatMap((format) => format.qualities ?? []),
+  ];
+}
+
+function toNewDownloads(downloads?: NewDownloadCollection): DownloadLink[] {
+  return getNewDownloadQualities(downloads)
+    .map((quality) => ({
+      quality: [quality.title, quality.size].filter(Boolean).join(" ") || "Link",
+      links: (quality.urls ?? [])
+        .filter((link) => link.url)
+        .map((link) => ({
+          server: link.title || "Server",
+          url: link.url ?? "",
+        })),
+    }))
+    .filter((download) => download.links.length > 0);
+}
+
+export function normalizeNewDetail(
+  response: NewAnimeDetailResponse | undefined,
+  id: string,
+  fallbackType: ContentType,
+  batchResponse?: NewBatchResponse,
+): NormalizedDetail | null {
+  const data = response?.data;
+  if (!data) return null;
+
+  const type = normalizeContentType(data.type, fallbackType);
+  const episodes = (data.episodeList ?? []).map((episode, index) =>
+    toNewEpisode(episode, index, id),
+  );
+  const anime: Anime = {
+    id,
+    title: data.title || "Tanpa judul",
+    slug: id,
+    thumbnail: data.poster || fallbackImage,
+    type,
+    score: data.score,
+    status: data.status,
+    synopsis: synopsisToText(data.synopsis),
+    episode:
+      typeof data.episodes === "number" ? `${data.episodes} eps` : undefined,
+    duration: data.duration,
+    studio: data.studios,
+    releaseDate: data.aired,
+    genres: toNewGenres(data.genreList),
+    episodesList: episodes,
+  };
+
+  return {
+    anime,
+    type,
+    episodes,
+    recommendations: toNewAnimeList(data.recommendedAnimeList, type),
+    downloads: toNewDownloads(batchResponse?.data?.downloadUrl),
+    streams: [],
+  };
+}
+
+export function normalizeNewEpisode(
+  response: NewEpisodeResponse | undefined,
+  id: string,
+) {
+  const data = response?.data;
+  const allEpisodes = (data?.info?.episodeList ?? []).map((episode, index) =>
+    toNewEpisode(episode, index, data?.animeId, id),
+  );
+
+  return {
+    id,
+    title: data?.title || "Episode",
+    streams: toNewStreams(data?.server?.qualities),
+    downloads: toNewDownloads(data?.downloadUrl),
+    navigation: {
+      prev: toNewEpisodeLink(data?.prevEpisode),
+      next: toNewEpisodeLink(data?.nextEpisode),
+    },
+    allEpisodes,
+  };
+}
+
+export function normalizeNewServerEmbed(
+  response: NewServerResponse | undefined,
+): ServerEmbedResponse {
+  return {
+    status: response?.status || "success",
+    creator: response?.creator,
+    embed_url: response?.data?.url,
   };
 }
 

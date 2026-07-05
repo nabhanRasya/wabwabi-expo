@@ -1,28 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { animeService } from "../api/services/animeServices";
+import { newAnimeService } from "../api/services/newAnimeService";
 import type { StreamServer } from "../types/anime";
-import { normalizeEpisode } from "../utils/helpers";
+import { normalizeNewEpisode, normalizeNewServerEmbed } from "../utils/helpers";
 
 export function useEpisode(id: string) {
   return useQuery({
     enabled: id.length > 0,
-    queryFn: () => animeService.getEpisodeDetail(id),
-    queryKey: ["episode", id],
-    select: (response) => normalizeEpisode(response, id),
+    queryFn: () => newAnimeService.getEpisodeDetail(id),
+    queryKey: ["newApi", "episode", id],
+    select: (response) => normalizeNewEpisode(response, id),
   });
 }
 
 export function useServerEmbed(stream?: StreamServer | null) {
   return useQuery({
-    enabled: Boolean(stream?.post && (stream?.nume || stream?.iframe) && stream?.serverType),
-    queryFn: () =>
-      animeService.getServerEmbed({
-        iframe: stream?.iframe,
-        nume: stream?.nume ?? "",
-        post: stream?.post ?? "",
-        type: stream?.serverType ?? "schtml",
-      }),
-    queryKey: ["server-embed", stream?.post, stream?.nume, stream?.iframe, stream?.serverType],
+    enabled: Boolean(stream?.serverId),
+    queryFn: () => newAnimeService.getServerUrl(stream?.serverId ?? ""),
+    queryKey: ["newApi", "server-embed", stream?.serverId],
+    select: normalizeNewServerEmbed,
   });
 }

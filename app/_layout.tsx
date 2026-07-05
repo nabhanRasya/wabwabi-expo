@@ -1,15 +1,18 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { queryClient } from "../src/utils/queryClient";
 
 import "../global.css";
 
+const RootContainer = Platform.OS === "web" ? View : GestureHandlerRootView;
+
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView className="flex-1">
+    <RootContainer className="flex-1">
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
@@ -46,6 +49,6 @@ export default function RootLayout() {
           </Stack>
         </QueryClientProvider>
       </SafeAreaProvider>
-    </GestureHandlerRootView>
+    </RootContainer>
   );
 }

@@ -21,6 +21,7 @@ export function ServicesSelector({
     >
       {services.map((service, index) => {
         const selected =
+          active?.serverId === service.serverId &&
           active?.post === service.post &&
           active?.nume === service.nume &&
           active?.iframe === service.iframe &&
@@ -29,7 +30,7 @@ export function ServicesSelector({
 
         return (
           <Pressable
-            key={`${service.name}-${service.quality}-${service.nume ?? service.iframe}-${service.serverType}-${index}`}
+            key={`${service.name}-${service.quality}-${service.serverId ?? service.nume ?? service.iframe}-${service.serverType}-${index}`}
             onPress={() => onSelect(service)}
             className={`min-h-[38px] max-w-[150px] justify-center rounded-lg border px-3 active:opacity-70 ${
               selected ? "border-primary bg-primary" : "border-border bg-surface"

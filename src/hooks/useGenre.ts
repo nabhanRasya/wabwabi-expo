@@ -1,21 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { animeService } from "../api/services/animeServices";
-import { getListItems, toGenres } from "../utils/helpers";
+import { newAnimeService } from "../api/services/newAnimeService";
+import { getNewGenreItems, getNewListItems } from "../utils/helpers";
 
 export function useGenre(slug: string, page = 1) {
   return useQuery({
     enabled: slug.length > 0,
-    queryFn: () => animeService.getByGenre(slug, page),
-    queryKey: ["genre", slug, page],
-    select: getListItems,
+    queryFn: () => newAnimeService.getAnimeByGenre(slug, page),
+    queryKey: ["newApi", "genre", slug, page],
+    select: getNewListItems,
   });
 }
 
 export function useGenres() {
   return useQuery({
-    queryFn: animeService.getAllGenres,
-    queryKey: ["genres"],
-    select: (response) => toGenres(response.data),
+    queryFn: newAnimeService.getAllGenre,
+    queryKey: ["newApi", "genres"],
+    select: getNewGenreItems,
   });
 }

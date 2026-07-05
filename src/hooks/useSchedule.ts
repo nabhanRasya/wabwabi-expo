@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { animeService } from "../api/services/animeServices";
-import { getListItems } from "../utils/helpers";
+import { newAnimeService } from "../api/services/newAnimeService";
+import { getNewScheduleItems } from "../utils/helpers";
 
 export function useSchedule(day: string) {
   return useQuery({
-    queryFn: () => animeService.getSchedule(day),
-    queryKey: ["schedule", day],
-    select: getListItems,
+    queryFn: newAnimeService.getSchedule,
+    queryKey: ["newApi", "schedule", day],
+    select: (response) => getNewScheduleItems(response, day),
   });
 }

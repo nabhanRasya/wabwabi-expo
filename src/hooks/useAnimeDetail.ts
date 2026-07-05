@@ -1,24 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { animeService } from "../api/services/animeServices";
+import { newAnimeService } from "../api/services/newAnimeService";
 import type { ContentType } from "../types/anime";
-import { normalizeDetail } from "../utils/helpers";
+import { normalizeNewDetail } from "../utils/helpers";
 
 export function useAnimeDetail(id: string, type: ContentType = "anime") {
   return useQuery({
     enabled: id.length > 0,
     queryFn: async () => {
-      if (type === "film") {
-        return animeService.getFilmDetail(id);
+      const detail = await newAnimeService.getAnimeDetail(id);
+      const batchId = detail.data?.batch?.batchId;
+
+      if (!batchId) {
+        return { batch: undefined, detail };
       }
 
-      if (type === "series") {
-        return animeService.getSeriesDetail(id);
+      try {
+        const batch = await newAnimeService.getBatch(batchId);
+        return { batch, detail };
+      } catch {
+        return { batch: undefined, detail };
       }
-
-      return animeService.getAnimeDetail(id);
     },
-    queryKey: ["detail", type, id],
-    select: (response) => normalizeDetail(response, id, type),
+    queryKey: ["newApi", "detail", type, id],
+    select: ({ batch, detail }) => normalizeNewDetail(detail, id, type, batch),
   });
 }

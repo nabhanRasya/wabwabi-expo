@@ -95,7 +95,7 @@ export default function EpisodeRoute() {
           {isFetchingEmbed ? (
             <LoadingSpinner />
           ) : activeStream ? (
-            <EmbedPlayer url={embedData?.embed_url} />
+            <EmbedPlayer html={embedData?.html} url={embedData?.embed_url} />
           ) : (
             <EmptyState title="Stream tidak tersedia" />
           )}
@@ -144,5 +144,5 @@ export default function EpisodeRoute() {
 }
 
 function streamKey(stream: StreamServer) {
-  return `${stream.post ?? ""}:${stream.nume ?? stream.iframe ?? ""}:${stream.serverType ?? ""}:${stream.quality ?? ""}:${stream.name}`;
+  return `${stream.serverId ?? ""}:${stream.post ?? ""}:${stream.nume ?? stream.iframe ?? ""}:${stream.serverType ?? ""}:${stream.quality ?? ""}:${stream.name}`;
 }

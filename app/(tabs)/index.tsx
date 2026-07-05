@@ -3,19 +3,19 @@ import { Image } from "expo-image";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { animeService } from "../../src/api/services/animeServices";
+import { newAnimeService } from "../../src/api/services/newAnimeService";
 import { AnimeCard } from "../../src/components/ui/AnimeCard";
 import { ErrorState } from "../../src/components/ui/ErrorState";
 import { HeroBanner } from "../../src/components/ui/HeroBanner";
 import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
 import { SectionHeader } from "../../src/components/ui/SectionHeader";
-import { getHomeSections } from "../../src/utils/helpers";
+import { getNewHomeSections } from "../../src/utils/helpers";
 
 export default function HomeScreen() {
   const { data, error, isLoading, isRefetching, refetch } = useQuery({
-    queryFn: animeService.getHome,
-    queryKey: ["home"],
-    select: getHomeSections,
+    queryFn: newAnimeService.getHome,
+    queryKey: ["newApi", "home"],
+    select: getNewHomeSections,
   });
 
   if (isLoading) {
@@ -27,7 +27,9 @@ export default function HomeScreen() {
   }
 
   const sections = data ?? [];
-  const hero = sections.find((section) => section.key === "latest_anime")?.items[0] ?? sections[0]?.items[0];
+  const hero =
+    sections.find((section) => section.key === "ongoing")?.items[0] ??
+    sections[0]?.items[0];
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-background">
