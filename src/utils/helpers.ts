@@ -75,6 +75,21 @@ export function slugFromUrl(url?: string): string {
   return clean.substring(clean.lastIndexOf("/") + 1);
 }
 
+export function isOtakuwatch5Service(value?: string) {
+  const normalized = value?.toLowerCase().trim();
+  if (!normalized) return false;
+
+  return (
+    normalized === "otakuwatch5" ||
+    normalized === "otakuwatch5.id" ||
+    normalized === "otakuwatch5.com" ||
+    normalized.startsWith("otakuwatch5/") ||
+    normalized.startsWith("otakuwatch5.id/") ||
+    normalized.startsWith("otakuwatch5.com/") ||
+    /^https?:\/\/([^/]+\.)?otakuwatch5\.(id|com)(\/|$)/.test(normalized)
+  );
+}
+
 export function isMegaService(value?: string) {
   const normalized = value?.toLowerCase().trim();
   if (!normalized) return false;
@@ -82,20 +97,52 @@ export function isMegaService(value?: string) {
   return (
     normalized === "mega" ||
     normalized === "mega.nz" ||
-    normalized === "mega.co.nz" ||
+    normalized.startsWith("mega/") ||
     normalized.startsWith("mega.nz/") ||
-    normalized.startsWith("mega.co.nz/") ||
-    /^https?:\/\/([^/]+\.)?mega\.(co\.)?nz(\/|$)/.test(normalized)
+    normalized.includes("mega")
   );
 }
 
-export interface MegaDownloadItem {
+export function isSupportedStreamService(value?: string) {
+  return isOtakuwatch5Service(value) || isMegaService(value);
+}
+
+export interface Otakuwatch5DownloadItem {
   quality: string;
   server: string;
   url: string;
 }
 
-export function getMegaDownloadItems(downloads?: DownloadLink[]): MegaDownloadItem[] {
+export function getOtakuwatch5DownloadItems(
+  downloads?: DownloadLink[],
+): Otakuwatch5DownloadItem[] {
+  const seenQualities = new Set<string>();
+
+  return (downloads ?? [])
+    .flatMap((download) =>
+      download.links
+        .filter(
+          (link) =>
+            isOtakuwatch5Service(link.server) || isOtakuwatch5Service(link.url),
+        )
+        .map((link) => ({
+          quality: download.quality || "Resolusi",
+          server: "otakuwatch5",
+          url: link.url,
+        })),
+    )
+    .filter((item) => {
+      const qualityKey = item.quality.toLowerCase();
+      if (seenQualities.has(qualityKey)) return false;
+
+      seenQualities.add(qualityKey);
+      return true;
+    });
+}
+
+export function getMegaDownloadItems(
+  downloads?: DownloadLink[],
+): Otakuwatch5DownloadItem[] {
   const seenQualities = new Set<string>();
 
   return (downloads ?? [])
@@ -104,7 +151,7 @@ export function getMegaDownloadItems(downloads?: DownloadLink[]): MegaDownloadIt
         .filter((link) => isMegaService(link.server) || isMegaService(link.url))
         .map((link) => ({
           quality: download.quality || "Resolusi",
-          server: "MEGA",
+          server: "mega",
           url: link.url,
         })),
     )
@@ -355,9 +402,7 @@ export function normalizeEpisode(
   };
 }
 
-function synopsisToText(
-  value?: string | NewAnimeSynopsis,
-): string | undefined {
+function synopsisToText(value?: string | NewAnimeSynopsis): string | undefined {
   if (!value) return undefined;
   if (typeof value === "string") return value.trim() || undefined;
 
@@ -509,9 +554,7 @@ function toNewGenre(item: NewAnimeGenre): Genre {
 }
 
 export function toNewGenres(items?: NewAnimeGenre[]): Genre[] {
-  return (items ?? [])
-    .map(toNewGenre)
-    .filter((genre) => genre.slug.length > 0);
+  return (items ?? []).map(toNewGenre).filter((genre) => genre.slug.length > 0);
 }
 
 export function getNewGenreItems(response?: NewGenreListResponse): Genre[] {
@@ -526,14 +569,14 @@ function toNewEpisode(
 ): Episode {
   const title =
     item.title?.trim() ||
-    (typeof item.eps === "number" ? `Episode ${item.eps}` : `Episode ${index + 1}`);
+    (typeof item.eps === "number"
+      ? `Episode ${item.eps}`
+      : `Episode ${index + 1}`);
   const id =
     item.episodeId?.trim() ||
     slugFromUrl(item.href || item.otakudesuUrl) ||
     titleToSlug(title);
-  const number =
-    item.eps ??
-    Number(title.match(/\d+/)?.[0]);
+  const number = item.eps ?? Number(title.match(/\d+/)?.[0]);
 
   return {
     id,
@@ -557,20 +600,38 @@ function toNewEpisodeLink(item?: NewEpisodeLink | null) {
 
 function toNewStreams(qualities?: NewStreamQuality[]): StreamServer[] {
   return (qualities ?? []).flatMap((quality) =>
-    (quality.serverList ?? [])
-      .filter((server) => server.serverId)
-      .map((server) => {
-        const name = server.title?.trim() || "Server";
+    (quality.serverList ?? []).flatMap((server) => {
+      const serverTitle =
+        server.title?.trim() || server.name?.trim() || server.server?.trim();
+      const normalizedTitle = serverTitle?.toLowerCase();
+      const serverId =
+        server.serverId ||
+        server.id ||
+        server.slug ||
+        server.href?.split("/").pop() ||
+        "";
 
-        return {
+      if (!serverId) return [];
+
+      const name =
+        serverTitle || (isMegaService(normalizedTitle) ? "mega" : "server");
+      const serverType = isOtakuwatch5Service(normalizedTitle)
+        ? "otakuwatch5"
+        : isMegaService(normalizedTitle)
+          ? "mega"
+          : "mega";
+
+      return [
+        {
           name,
           quality: quality.title?.trim(),
           type: "embed" as const,
-          serverId: server.serverId,
+          serverId,
           url: server.href,
-          serverType: name,
-        };
-      }),
+          serverType,
+        },
+      ];
+    }),
   );
 }
 
@@ -584,11 +645,12 @@ function getNewDownloadQualities(downloads?: NewDownloadCollection) {
 function toNewDownloads(downloads?: NewDownloadCollection): DownloadLink[] {
   return getNewDownloadQualities(downloads)
     .map((quality) => ({
-      quality: [quality.title, quality.size].filter(Boolean).join(" ") || "Link",
+      quality:
+        [quality.title, quality.size].filter(Boolean).join(" ") || "Link",
       links: (quality.urls ?? [])
         .filter((link) => link.url)
         .map((link) => ({
-          server: link.title || "Server",
+          server: link.server || link.title || link.name || "Server",
           url: link.url ?? "",
         })),
     }))
@@ -664,7 +726,12 @@ export function normalizeNewServerEmbed(
   return {
     status: response?.status || "success",
     creator: response?.creator,
-    embed_url: response?.data?.url,
+    embed_url:
+      response?.data?.embed_url ||
+      response?.data?.embedUrl ||
+      response?.data?.url ||
+      response?.data?.html ||
+      "",
   };
 }
 

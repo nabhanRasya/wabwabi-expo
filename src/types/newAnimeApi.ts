@@ -50,10 +50,12 @@ export interface NewAnimeListResponse {
   statusMessage?: string;
   message?: string;
   ok?: boolean;
-  data?: {
-    animeList?: NewAnimeItem[];
-    list?: NewAnimeListGroup[];
-  } | NewAnimeItem[];
+  data?:
+    | {
+        animeList?: NewAnimeItem[];
+        list?: NewAnimeListGroup[];
+      }
+    | NewAnimeItem[];
   results?: NewAnimeItem[];
   pagination?: NewAnimePagination | null;
 }
@@ -157,7 +159,11 @@ export interface NewEpisodeLink {
 
 export interface NewStreamServerItem {
   title?: string;
+  name?: string;
+  server?: string;
   serverId?: string;
+  id?: string;
+  slug?: string;
   href?: string;
 }
 
@@ -168,6 +174,8 @@ export interface NewStreamQuality {
 
 export interface NewDownloadUrl {
   title?: string;
+  name?: string;
+  server?: string;
   url?: string;
 }
 
@@ -254,6 +262,9 @@ export interface NewServerResponse {
   ok?: boolean;
   data?: {
     url?: string;
+    embed_url?: string;
+    embedUrl?: string;
+    html?: string;
   };
   pagination?: NewAnimePagination | null;
 }

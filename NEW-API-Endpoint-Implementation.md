@@ -12,6 +12,7 @@ API ini **tidak menggantikan** API lama — ia adalah sumber data terpisah
 mengubah perilaku kode API lama yang sudah berjalan.
 
 > ⚠️ **Perlu dikonfirmasi sebelum implementasi final:**
+>
 > - Base URL production API ini (belum diketahui — isi di `client.ts` baru, lihat placeholder `NEW_API_BASE_URL`).
 > - Bentuk asli JSON response tiap endpoint (contoh di bawah adalah **asumsi struktur umum**, bukan hasil observasi nyata). Sebelum implementasi final, agent **wajib** memanggil endpoint sungguhan (atau minta contoh response dari user) untuk memverifikasi field-field aktual, lalu menyesuaikan types di `src/types/newAnimeApi.ts`.
 
@@ -22,20 +23,21 @@ mengubah perilaku kode API lama yang sudah berjalan.
 Ini bagian paling penting untuk agent — API baru **tidak** mengikuti pola yang
 sama seperti API lama pada beberapa hal:
 
-| Aspek | API Lama (`animeServices.ts`) | API Baru |
-|---|---|---|
-| Base path | `/` (root langsung ke fitur) | Semua endpoint diprefix `/anime/...` |
-| Parameter pencarian | Query string `?q=keyword` | **Path param**: `/anime/search/:keyword` |
-| Parameter detail anime | Query/berbeda per konten (`ANIME_DETAIL(id)`, `SERIES_DETAIL(id)`, `FILM_DETAIL(id)` — 3 tipe) | **Satu endpoint** untuk semua: `/anime/anime/:slug` |
-| Parameter genre | `ANIME_BY_GENRE(slug)` + `?page=` | Sama pola (`/anime/genre/:slug?page=`), tapi ada endpoint tambahan `/anime/genre` untuk list semua genre |
-| Server/embed streaming | `GET /server` dengan query `post`, `type`, `nume`, `iframe` | **Path param** `serverId`: `/anime/server/:serverId` (asumsi `serverId` didapat dari response detail episode — perlu diverifikasi) |
-| Pagination | Semua endpoint list pakai `?page=1` default | Hanya sebagian endpoint (`complete-anime`, `ongoing-anime`, `genre/:slug`) yang punya `?page=` opsional; endpoint lain (`home`, `schedule`, `unlimited`, `search`) tidak disebutkan punya pagination |
-| Response shape | Response interceptor mengembalikan `response.data` langsung, lalu dinormalisasi via `getListItems()` (`response?.results ?? response?.data ?? []`) | **Belum diketahui** — jangan asumsikan field `results`/`data` sama; verifikasi dulu |
-| Error format | `{ message: string }` di body error | **Belum diketahui** — perlu penanganan fallback yang sama amannya |
+| Aspek                  | API Lama (`animeServices.ts`)                                                                                                                      | API Baru                                                                                                                                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base path              | `/` (root langsung ke fitur)                                                                                                                       | Semua endpoint diprefix `/anime/...`                                                                                                                                                                 |
+| Parameter pencarian    | Query string `?q=keyword`                                                                                                                          | **Path param**: `/anime/search/:keyword`                                                                                                                                                             |
+| Parameter detail anime | Query/berbeda per konten (`ANIME_DETAIL(id)`, `SERIES_DETAIL(id)`, `FILM_DETAIL(id)` — 3 tipe)                                                     | **Satu endpoint** untuk semua: `/anime/anime/:slug`                                                                                                                                                  |
+| Parameter genre        | `ANIME_BY_GENRE(slug)` + `?page=`                                                                                                                  | Sama pola (`/anime/genre/:slug?page=`), tapi ada endpoint tambahan `/anime/genre` untuk list semua genre                                                                                             |
+| Server/embed streaming | `GET /server` dengan query `post`, `type`, `nume`, `iframe`                                                                                        | **Path param** `serverId`: `/anime/server/:serverId` (asumsi `serverId` didapat dari response detail episode — perlu diverifikasi)                                                                   |
+| Pagination             | Semua endpoint list pakai `?page=1` default                                                                                                        | Hanya sebagian endpoint (`complete-anime`, `ongoing-anime`, `genre/:slug`) yang punya `?page=` opsional; endpoint lain (`home`, `schedule`, `unlimited`, `search`) tidak disebutkan punya pagination |
+| Response shape         | Response interceptor mengembalikan `response.data` langsung, lalu dinormalisasi via `getListItems()` (`response?.results ?? response?.data ?? []`) | **Belum diketahui** — jangan asumsikan field `results`/`data` sama; verifikasi dulu                                                                                                                  |
+| Error format           | `{ message: string }` di body error                                                                                                                | **Belum diketahui** — perlu penanganan fallback yang sama amannya                                                                                                                                    |
 
 **Implikasi implementasi:** jangan menambahkan method-method ini ke
 `animeService` yang sudah ada. Buat **service, client, dan types baru** yang
 terpisah, supaya:
+
 1. Perbedaan bentuk response tidak memaksa refactor `getListItems()` yang dipakai fitur lama.
 2. Jika base URL / auth API baru berubah, tidak menyentuh konfigurasi API lama.
 3. Kedua sumber data bisa dipakai bersamaan di satu screen tanpa konflik query key React Query (namespace key berbeda, lihat bagian Hooks).
@@ -47,20 +49,20 @@ terpisah, supaya:
 Base path: `/anime` (asumsi ditambahkan di atas base URL baru; sesuaikan bila
 ternyata base URL sudah termasuk `/anime`).
 
-| Fitur | Method & Path | Query Params | Contoh |
-|---|---|---|---|
-| Halaman Home | `GET /anime/home` | – | – |
-| Jadwal Rilis Anime | `GET /anime/schedule` | – | – |
-| Detail Lengkap Anime | `GET /anime/anime/:slug` | – | `/anime/anime/enen-shouboutai-season-3-p2-sub-indo` |
-| Anime Tamat per Halaman | `GET /anime/complete-anime` | `page` (opsional, default `1`) | `/anime/complete-anime?page=1` |
-| Anime yang Sedang Tayang | `GET /anime/ongoing-anime` | `page` (opsional, default `1`) | `/anime/ongoing-anime?page=1` |
-| Daftar Semua Genre | `GET /anime/genre` | – | – |
-| Daftar Anime Berdasarkan Genre | `GET /anime/genre/:slug` | `page` (opsional, default `1`) | `/anime/genre/action?page=1` |
-| Detail & Link Nonton per Episode | `GET /anime/episode/:slug` | – | `/anime/episode/mebsn-episode-1-sub-indo` |
-| Pencarian Anime | `GET /anime/search/:keyword` | – | `/anime/search/boruto` |
-| Download Batch Anime | `GET /anime/batch/:slug` | – | `/anime/batch/jshk-s2-batch-sub-indo` |
-| Ambil URL Stream Server | `GET /anime/server/:serverId` | – | `/anime/server/187226-0-720p` |
-| All Anime (Unlimited) | `GET /anime/unlimited` | – | – |
+| Fitur                            | Method & Path                 | Query Params                   | Contoh                                              |
+| -------------------------------- | ----------------------------- | ------------------------------ | --------------------------------------------------- |
+| Halaman Home                     | `GET /anime/home`             | –                              | –                                                   |
+| Jadwal Rilis Anime               | `GET /anime/schedule`         | –                              | –                                                   |
+| Detail Lengkap Anime             | `GET /anime/anime/:slug`      | –                              | `/anime/anime/enen-shouboutai-season-3-p2-sub-indo` |
+| Anime Tamat per Halaman          | `GET /anime/complete-anime`   | `page` (opsional, default `1`) | `/anime/complete-anime?page=1`                      |
+| Anime yang Sedang Tayang         | `GET /anime/ongoing-anime`    | `page` (opsional, default `1`) | `/anime/ongoing-anime?page=1`                       |
+| Daftar Semua Genre               | `GET /anime/genre`            | –                              | –                                                   |
+| Daftar Anime Berdasarkan Genre   | `GET /anime/genre/:slug`      | `page` (opsional, default `1`) | `/anime/genre/action?page=1`                        |
+| Detail & Link Nonton per Episode | `GET /anime/episode/:slug`    | –                              | `/anime/episode/mebsn-episode-1-sub-indo`           |
+| Pencarian Anime                  | `GET /anime/search/:keyword`  | –                              | `/anime/search/boruto`                              |
+| Download Batch Anime             | `GET /anime/batch/:slug`      | –                              | `/anime/batch/jshk-s2-batch-sub-indo`               |
+| Ambil URL Stream Server          | `GET /anime/server/:serverId` | –                              | `/anime/server/187226-0-720p`                       |
+| All Anime (Unlimited)            | `GET /anime/unlimited`        | –                              | –                                                   |
 
 ---
 
@@ -353,6 +355,101 @@ const items = getNewAnimeListItems(data);
 Pola render state (`error` → `ErrorState`, `isFetching` → `LoadingSpinner`,
 kosong → `EmptyState`, ada data → `FlatList`) tetap sama seperti implementasi
 lama — komponen UI tidak perlu tahu dari client/service mana data berasal.
+
+---
+
+## 8. Tombol Resolusi Streaming dan Download
+
+Implementasikan dua kelompok tombol terpisah:
+
+1. Tombol resolusi streaming hanya untuk server `otakuwatch5`.
+2. Tombol resolusi download hanya untuk server `mega`.
+
+### Streaming
+
+- Ambil `serverList` dari `data.server.qualities` di response episode.
+- Filter hanya server dengan `title === "otakuwatch5"`.
+- Tampilkan tombol resolusi dari `quality.title` untuk setiap server yang cocok.
+- Gunakan nilai `serverId` dari server yang dipilih untuk memanggil endpoint:
+  `GET /anime/server/:serverId`.
+
+Contoh pseudo-UI:
+
+```tsx
+const otakuwatch5Streams = qualities.flatMap((quality) =>
+  (quality.serverList ?? [])
+    .filter((server) => server.title?.toLowerCase() === "otakuwatch5")
+    .map((server) => ({
+      quality: quality.title,
+      serverId: server.serverId,
+      href: server.href,
+    })),
+);
+
+return (
+  <View>
+    {otakuwatch5Streams.map((stream) => (
+      <Pressable
+        key={stream.serverId}
+        onPress={() => handleStreamSelect(stream.serverId)}
+      >
+        <Text>{stream.quality ?? "otakuwatch5"}</Text>
+      </Pressable>
+    ))}
+  </View>
+);
+```
+
+Saat tombol diklik, panggil service berikut:
+
+```ts
+newAnimeService.getServerUrl(streamId);
+```
+
+Lalu render `embed_url` yang dikembalikan oleh response.
+
+### Download
+
+- Ambil daftar download terpisah dari response download API/new endpoint.
+- Filter hanya link dengan `server` atau `title` yang menunjukkan `mega`.
+- Tampilkan tombol resolusi download berdasarkan `quality` atau `title`.
+- Tombol download boleh tetap memakai label `mega`, karena ini adalah sumber
+  download yang berbeda dari sumber streaming.
+
+Contoh pseudo-UI:
+
+```tsx
+const megaDownloads = downloadQualities.flatMap((quality) =>
+  (quality.urls ?? [])
+    .filter((link) => link.server?.toLowerCase() === "mega")
+    .map((link) => ({
+      quality: quality.title,
+      url: link.url,
+    })),
+);
+
+return (
+  <View>
+    {megaDownloads.map((download) => (
+      <Pressable
+        key={download.url}
+        onPress={() => openExternalUrl(download.url)}
+      >
+        <Text>{download.quality ?? "Mega"}</Text>
+      </Pressable>
+    ))}
+  </View>
+);
+```
+
+### Catatan penting
+
+- Pastikan `streaming` dan `download` memakai sumber data terpisah —
+  streaming dari response `server.qualities`, download dari response
+  `downloadUrl` atau struktur `mega` yang sesuai.
+- Jangan gabungkan filter `otakuwatch5` dan `mega` dalam satu komponen tombol.
+- Gunakan label yang jelas: `Resolusi Streaming` untuk otakuwatch5, dan
+  `Resolusi Download` untuk mega.
 
 ---
 

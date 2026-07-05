@@ -5,12 +5,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
 import type { ContentType, StreamServer } from "../../types/anime";
+import type { Otakuwatch5DownloadItem } from "../../utils/helpers";
 import {
   getMegaDownloadItems,
-  isMegaService,
+  isSupportedStreamService,
   normalizeParam,
 } from "../../utils/helpers";
-import type { MegaDownloadItem } from "../../utils/helpers";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 import { AnimeCard } from "../ui/AnimeCard";
 import { EmptyState } from "../ui/EmptyState";
@@ -56,8 +56,10 @@ export function DetailScreen({ type }: DetailScreenProps) {
   }
 
   const firstEpisode = detail.episodes[0];
-  const megaStreams = detail.streams.filter(
-    (stream) => isMegaService(stream.name) || isMegaService(stream.serverType),
+  const availableStreams = detail.streams.filter(
+    (stream) =>
+      isSupportedStreamService(stream.name) ||
+      isSupportedStreamService(stream.serverType),
   );
   const megaDownloads = getMegaDownloadItems(detail.downloads);
 
@@ -89,7 +91,9 @@ export function DetailScreen({ type }: DetailScreenProps) {
         </View>
 
         <View className="px-4 pt-[18px]">
-          <Text className="text-[25px] font-black leading-8 text-white">{detail.anime.title}</Text>
+          <Text className="text-[25px] font-black leading-8 text-white">
+            {detail.anime.title}
+          </Text>
 
           <View className="mt-3 flex-row flex-wrap gap-2">
             {!!detail.anime.score && detail.anime.score !== "-" && (
@@ -113,8 +117,12 @@ export function DetailScreen({ type }: DetailScreenProps) {
 
           {!!detail.anime.synopsis && (
             <View className="mt-6">
-              <Text className="mb-2 text-[17px] font-black text-text-primary">Sinopsis</Text>
-              <Text className="text-sm leading-[22px] text-[#b6c2d1]">{detail.anime.synopsis}</Text>
+              <Text className="mb-2 text-[17px] font-black text-text-primary">
+                Sinopsis
+              </Text>
+              <Text className="text-sm leading-[22px] text-[#b6c2d1]">
+                {detail.anime.synopsis}
+              </Text>
             </View>
           )}
 
@@ -143,10 +151,10 @@ export function DetailScreen({ type }: DetailScreenProps) {
             </View>
           )}
 
-          {(megaStreams.length > 0 || megaDownloads.length > 0) && (
+          {(availableStreams.length > 0 || megaDownloads.length > 0) && (
             <View className="mt-6">
               <SectionHeader title="Streaming & Download" />
-              {megaStreams.map((stream, index) => (
+              {availableStreams.map((stream, index) => (
                 <StreamRow
                   key={`${stream.name}-${stream.quality}-${index}`}
                   stream={stream}
@@ -188,7 +196,9 @@ export function DetailScreen({ type }: DetailScreenProps) {
 function InfoPill({ label }: { label: string }) {
   return (
     <View className="min-h-[30px] justify-center rounded-lg bg-surface px-2.5">
-      <Text className="text-xs font-extrabold text-text-secondary">{label}</Text>
+      <Text className="text-xs font-extrabold text-text-secondary">
+        {label}
+      </Text>
     </View>
   );
 }
@@ -196,19 +206,23 @@ function InfoPill({ label }: { label: string }) {
 function StreamRow({ stream }: { stream: StreamServer }) {
   return (
     <View className="mb-2.5 min-h-[52px] flex-row items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3">
-      <Text className="flex-1 text-sm font-extrabold text-text-primary">{stream.quality || "Resolusi"}</Text>
+      <Text className="flex-1 text-sm font-extrabold text-text-primary">
+        {stream.quality || "Resolusi"}
+      </Text>
     </View>
   );
 }
 
-function DownloadRow({ download }: { download: MegaDownloadItem }) {
+function DownloadRow({ download }: { download: Otakuwatch5DownloadItem }) {
   return (
     <Pressable
       onPress={() => void openExternalUrl(download.url)}
       className="mb-2.5 min-h-[52px] flex-row items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 active:opacity-70"
     >
-      <Text className="flex-1 text-sm font-extrabold text-text-primary">Download {download.quality || "Resolusi"}</Text>
-      <Text className="text-xs font-extrabold text-text-secondary">MEGA</Text>
+      <Text className="flex-1 text-sm font-extrabold text-text-primary">
+        Download {download.quality || "Resolusi"}
+      </Text>
+      <Text className="text-xs font-extrabold text-text-secondary">mega</Text>
     </Pressable>
   );
 }

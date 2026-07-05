@@ -13,7 +13,7 @@ import { useEpisode, useServerEmbed } from "../../src/hooks/useEpisode";
 import type { StreamServer } from "../../src/types/anime";
 import {
   getMegaDownloadItems,
-  isMegaService,
+  isSupportedStreamService,
   normalizeParam,
 } from "../../src/utils/helpers";
 import { openExternalUrl } from "../../src/utils/openExternalUrl";
@@ -26,22 +26,25 @@ export default function EpisodeRoute() {
     null,
   );
 
-  const megaStreams = useMemo(
+  const availableStreams = useMemo(
     () =>
       (data?.streams ?? []).filter(
         (stream) =>
-          isMegaService(stream.name) || isMegaService(stream.serverType),
+          isSupportedStreamService(stream.name) ||
+          isSupportedStreamService(stream.serverType),
       ),
     [data?.streams],
   );
 
   const activeStream = useMemo(() => {
     return (
-      megaStreams.find((stream) => streamKey(stream) === selectedStreamKey) ??
-      megaStreams[0] ??
+      availableStreams.find(
+        (stream) => streamKey(stream) === selectedStreamKey,
+      ) ??
+      availableStreams[0] ??
       null
     );
-  }, [megaStreams, selectedStreamKey]);
+  }, [availableStreams, selectedStreamKey]);
 
   const { data: embedData, isFetching: isFetchingEmbed } =
     useServerEmbed(activeStream);
@@ -86,7 +89,10 @@ export default function EpisodeRoute() {
           >
             <Text className="text-xs font-black text-white">Close</Text>
           </Pressable>
-          <Text numberOfLines={2} className="flex-1 text-lg font-black leading-6 text-white">
+          <Text
+            numberOfLines={2}
+            className="flex-1 text-lg font-black leading-6 text-white"
+          >
             {data.title}
           </Text>
         </View>
@@ -101,20 +107,24 @@ export default function EpisodeRoute() {
           )}
         </View>
 
-        {megaStreams.length > 0 ? (
+        {availableStreams.length > 0 ? (
           <View className="mt-[22px]">
-            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Pilih Resolusi</Text>
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">
+              Pilih Resolusi
+            </Text>
             <ServicesSelector
               active={activeStream}
               onSelect={(stream) => setSelectedStreamKey(streamKey(stream))}
-              services={megaStreams}
+              services={availableStreams}
             />
           </View>
         ) : null}
 
         {currentDownloadLinks.length > 0 ? (
           <View className="mt-[22px]">
-            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Download</Text>
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">
+              Download
+            </Text>
             {currentDownloadLinks.slice(0, 16).map((link) => (
               <Pressable
                 key={`${link.quality}-${link.url}`}
@@ -124,7 +134,9 @@ export default function EpisodeRoute() {
                 <Text className="text-sm font-black text-text-primary">
                   Download {link.quality || "Resolusi"}
                 </Text>
-                <Text className="text-xs font-extrabold text-text-secondary">MEGA</Text>
+                <Text className="text-xs font-extrabold text-text-secondary">
+                  mega
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -132,7 +144,9 @@ export default function EpisodeRoute() {
 
         {data.allEpisodes.length > 0 ? (
           <View className="mt-[22px]">
-            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">Daftar Episode</Text>
+            <Text className="mb-3 px-4 text-[17px] font-black text-text-primary">
+              Daftar Episode
+            </Text>
             {data.allEpisodes.slice(0, 80).map((episode) => (
               <EpisodeCard episode={episode} key={episode.id} />
             ))}
