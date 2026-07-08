@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import type { StreamServer } from "../../types/anime";
 
@@ -36,12 +36,20 @@ export function ServicesSelector({
               selected ? "border-primary bg-primary" : "border-border bg-surface"
             }`}
           >
-            <Text
-              className={`text-xs font-extrabold ${selected ? "text-white" : "text-text-secondary"}`}
-              numberOfLines={1}
-            >
-              {service.quality || "Resolusi"}
-            </Text>
+            <View className="items-center">
+              <Text
+                className={`text-xs font-extrabold ${selected ? "text-white" : "text-text-secondary"}`}
+                numberOfLines={1}
+              >
+                {service.quality || "Resolusi"}
+              </Text>
+              <Text
+                className={`text-[9px] font-semibold ${selected ? "text-white/70" : "text-text-muted"}`}
+                numberOfLines={1}
+              >
+                {service.name}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
