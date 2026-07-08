@@ -75,21 +75,6 @@ export function slugFromUrl(url?: string): string {
   return clean.substring(clean.lastIndexOf("/") + 1);
 }
 
-export function isOtakuwatch5Service(value?: string) {
-  const normalized = value?.toLowerCase().trim();
-  if (!normalized) return false;
-
-  return (
-    normalized === "otakuwatch5" ||
-    normalized === "otakuwatch5.id" ||
-    normalized === "otakuwatch5.com" ||
-    normalized.startsWith("otakuwatch5/") ||
-    normalized.startsWith("otakuwatch5.id/") ||
-    normalized.startsWith("otakuwatch5.com/") ||
-    /^https?:\/\/([^/]+\.)?otakuwatch5\.(id|com)(\/|$)/.test(normalized)
-  );
-}
-
 export function isMegaService(value?: string) {
   const normalized = value?.toLowerCase().trim();
   if (!normalized) return false;
@@ -103,62 +88,106 @@ export function isMegaService(value?: string) {
   );
 }
 
-export function isSupportedStreamService(value?: string) {
-  return isOtakuwatch5Service(value) || isMegaService(value);
+export function isOndesuService(value?: string) {
+  const normalized = value?.toLowerCase().trim();
+  if (!normalized) return false;
+
+  return (
+    normalized === "ondesu" ||
+    normalized === "ondesu.id" ||
+    normalized === "ondesu.com" ||
+    normalized.startsWith("ondesu/") ||
+    normalized.startsWith("ondesu.id/") ||
+    normalized.startsWith("ondesu.com/") ||
+    /^https?:\/\/([^/]+\.)?ondesu\.(id|com)(\/|$)/.test(normalized)
+  );
 }
 
-export interface Otakuwatch5DownloadItem {
+export function isOndesuHdService(value?: string) {
+  const normalized = value?.toLowerCase().trim();
+  if (!normalized) return false;
+
+  return (
+    normalized === "ondesuhd" ||
+    normalized === "ondesuhd.id" ||
+    normalized === "ondesuhd.com" ||
+    normalized.startsWith("ondesuhd/") ||
+    normalized.startsWith("ondesuhd.id/") ||
+    normalized.startsWith("ondesuhd.com/") ||
+    /^https?:\/\/([^/]+\.)?ondesuhd\.(id|com)(\/|$)/.test(normalized)
+  );
+}
+
+export function isOdstreamService(value?: string) {
+  const normalized = value?.toLowerCase().trim();
+  if (!normalized) return false;
+
+  return (
+    normalized === "odstream" ||
+    normalized === "odstream.id" ||
+    normalized === "odstream.com" ||
+    normalized.startsWith("odstream/") ||
+    normalized.startsWith("odstream.id/") ||
+    normalized.startsWith("odstream.com/") ||
+    /^https?:\/\/([^/]+\.)?odstream\.(id|com)(\/|$)/.test(normalized)
+  );
+}
+
+export function isPrimaryStreamService(value?: string) {
+  return isOdstreamService(value) || isOndesuService(value) || isOndesuHdService(value);
+}
+
+export function isSupportedStreamService(value?: string) {
+  return isPrimaryStreamService(value) || isMegaService(value);
+}
+
+export interface StreamDownloadItem {
   quality: string;
   server: string;
   url: string;
 }
 
-export function getOtakuwatch5DownloadItems(
-  downloads?: DownloadLink[],
-): Otakuwatch5DownloadItem[] {
-  const seenQualities = new Set<string>();
-
-  return (downloads ?? [])
-    .flatMap((download) =>
-      download.links
-        .filter(
-          (link) =>
-            isOtakuwatch5Service(link.server) || isOtakuwatch5Service(link.url),
-        )
-        .map((link) => ({
-          quality: download.quality || "Resolusi",
-          server: "otakuwatch5",
-          url: link.url,
-        })),
-    )
-    .filter((item) => {
-      const qualityKey = item.quality.toLowerCase();
-      if (seenQualities.has(qualityKey)) return false;
-
-      seenQualities.add(qualityKey);
-      return true;
-    });
-}
-
 export function getMegaDownloadItems(
   downloads?: DownloadLink[],
-): Otakuwatch5DownloadItem[] {
+): StreamDownloadItem[] {
   const seenQualities = new Set<string>();
 
-  return (downloads ?? [])
+  const allLinks = (downloads ?? [])
     .flatMap((download) =>
       download.links
-        .filter((link) => isMegaService(link.server) || isMegaService(link.url))
+        .filter((link) => link.url)
         .map((link) => ({
           quality: download.quality || "Resolusi",
-          server: "mega",
+          server: link.server || "Server",
           url: link.url,
         })),
-    )
+    );
+
+  const megaLinks = allLinks.filter((link) =>
+    isMegaService(link.server) || isMegaService(link.url),
+  );
+
+  const mp4Links = allLinks.filter((link) => {
+    const url = link.url?.toLowerCase() || "";
+    return url.endsWith(".mp4") || url.includes(".mp4?");
+  });
+
+  const mkvLinks = allLinks.filter((link) => {
+    const url = link.url?.toLowerCase() || "";
+    return url.endsWith(".mkv") || url.includes(".mkv?");
+  });
+
+  let linksToUse = megaLinks;
+  if (mp4Links.length > 0) {
+    linksToUse = [...megaLinks, ...mp4Links];
+  } else if (mkvLinks.length > 0) {
+    linksToUse = [...megaLinks, ...mkvLinks];
+  }
+
+  return linksToUse
     .filter((item) => {
       const qualityKey = item.quality.toLowerCase();
       if (seenQualities.has(qualityKey)) return false;
-
       seenQualities.add(qualityKey);
       return true;
     });
@@ -599,40 +628,75 @@ function toNewEpisodeLink(item?: NewEpisodeLink | null) {
 }
 
 function toNewStreams(qualities?: NewStreamQuality[]): StreamServer[] {
-  return (qualities ?? []).flatMap((quality) =>
-    (quality.serverList ?? []).flatMap((server) => {
-      const serverTitle =
-        server.title?.trim() || server.name?.trim() || server.server?.trim();
-      const normalizedTitle = serverTitle?.toLowerCase();
-      const serverId =
-        server.serverId ||
-        server.id ||
-        server.slug ||
-        server.href?.split("/").pop() ||
-        "";
+  const allServers = (qualities ?? []).flatMap((quality) =>
+    (quality.serverList ?? []).map((server) => ({
+      server,
+      quality: quality.title?.trim(),
+    })),
+  );
 
-      if (!serverId) return [];
+  const primaryServers = allServers.filter((s) =>
+    isPrimaryStreamService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()),
+  );
 
-      const name =
-        serverTitle || (isMegaService(normalizedTitle) ? "mega" : "server");
-      const serverType = isOtakuwatch5Service(normalizedTitle)
-        ? "otakuwatch5"
-        : isMegaService(normalizedTitle)
-          ? "mega"
+  const hasOdstream = primaryServers.some((s) =>
+    isOdstreamService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()),
+  );
+
+  const selectedServers = hasOdstream
+    ? primaryServers.filter((s) =>
+        isOdstreamService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()),
+      )
+    : primaryServers.filter((s) =>
+        isOndesuService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()) ||
+        isOndesuHdService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()),
+      );
+
+  const finalServers = selectedServers.length > 0 ? selectedServers : allServers.filter((s) =>
+    isMegaService(s.server.title?.trim() || s.server.name?.trim() || s.server.server?.trim()),
+  );
+
+  return finalServers.flatMap(({ server, quality }) => {
+    const serverTitle = server.title?.trim() || server.name?.trim() || server.server?.trim();
+    const normalizedTitle = serverTitle?.toLowerCase();
+    const serverId =
+      server.serverId ||
+      server.id ||
+      server.slug ||
+      server.href?.split("/").pop() ||
+      "";
+
+    if (!serverId) return [];
+
+    const name = isOdstreamService(normalizedTitle)
+      ? "odstream"
+      : isOndesuService(normalizedTitle)
+        ? "ondesu"
+        : isOndesuHdService(normalizedTitle)
+          ? "ondesuhd"
+          : isMegaService(normalizedTitle)
+            ? "mega"
+            : "server";
+
+    const serverType = isOdstreamService(normalizedTitle)
+      ? "odstream"
+      : isOndesuService(normalizedTitle)
+        ? "ondesu"
+        : isOndesuHdService(normalizedTitle)
+          ? "ondesuhd"
           : "mega";
 
-      return [
-        {
-          name,
-          quality: quality.title?.trim(),
-          type: "embed" as const,
-          serverId,
-          url: server.href,
-          serverType,
-        },
-      ];
-    }),
-  );
+    return [
+      {
+        name,
+        quality,
+        type: "embed" as const,
+        serverId,
+        url: server.href,
+        serverType,
+      },
+    ];
+  });
 }
 
 function getNewDownloadQualities(downloads?: NewDownloadCollection) {
@@ -644,16 +708,44 @@ function getNewDownloadQualities(downloads?: NewDownloadCollection) {
 
 function toNewDownloads(downloads?: NewDownloadCollection): DownloadLink[] {
   return getNewDownloadQualities(downloads)
-    .map((quality) => ({
-      quality:
-        [quality.title, quality.size].filter(Boolean).join(" ") || "Link",
-      links: (quality.urls ?? [])
+    .map((quality) => {
+      const allLinks = (quality.urls ?? [])
         .filter((link) => link.url)
         .map((link) => ({
           server: link.server || link.title || link.name || "Server",
           url: link.url ?? "",
-        })),
-    }))
+        }));
+
+      const megaLinks = allLinks.filter((link) => {
+        const url = link.url?.toLowerCase() || "";
+        const server = link.server?.toLowerCase() || "";
+        return server.includes("mega") || url.includes("mega");
+      });
+
+      const mp4Links = allLinks.filter((link) => {
+        const url = link.url?.toLowerCase() || "";
+        const server = link.server?.toLowerCase() || "";
+        return url.endsWith(".mp4") || url.includes(".mp4?") || server.includes("mp4");
+      });
+
+      const mkvLinks = allLinks.filter((link) => {
+        const url = link.url?.toLowerCase() || "";
+        const server = link.server?.toLowerCase() || "";
+        return url.endsWith(".mkv") || url.includes(".mkv?") || server.includes("mkv");
+      });
+
+      let finalLinks = megaLinks;
+      if (mp4Links.length > 0) {
+        finalLinks = [...megaLinks, ...mp4Links];
+      } else if (mkvLinks.length > 0) {
+        finalLinks = [...megaLinks, ...mkvLinks];
+      }
+
+      return {
+        quality: [quality.title, quality.size].filter(Boolean).join(" ") || "Link",
+        links: finalLinks,
+      };
+    })
     .filter((download) => download.links.length > 0);
 }
 

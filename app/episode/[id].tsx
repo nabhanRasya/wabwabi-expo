@@ -132,10 +132,7 @@ export default function EpisodeRoute() {
                 className="mx-4 mb-2.5 min-h-[52px] flex-row items-center justify-between rounded-lg border border-border bg-background-card px-3 active:opacity-70"
               >
                 <Text className="text-sm font-black text-text-primary">
-                  Download {link.quality || "Resolusi"}
-                </Text>
-                <Text className="text-xs font-extrabold text-text-secondary">
-                  mega
+                  {link.quality || "Resolusi"}
                 </Text>
               </Pressable>
             ))}

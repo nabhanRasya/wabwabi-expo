@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -13,7 +14,7 @@ import { AnimeCard } from "../src/components/ui/AnimeCard";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { ErrorState } from "../src/components/ui/ErrorState";
 import { LoadingSpinner } from "../src/components/ui/LoadingSpinner";
-import { usePaginationAnime } from "../src/hooks/usePaginationAnime";
+import { useGenres, useCatalog } from "../src/hooks/useGenre";
 import { normalizeParam } from "../src/utils/helpers";
 
 const TYPES = [
@@ -28,25 +29,27 @@ export default function CatalogScreen() {
   const initialTitle = normalizeParam(params.title);
   const [title, setTitle] = useState(initialTitle);
 
+  const { data: genres = [], isLoading: isLoadingGenres } = useGenres();
+
   const catalogParams = useMemo(
     () => ({
       order: normalizeParam(params.order) || "update",
       status: normalizeParam(params.status) || undefined,
       title: initialTitle || undefined,
       type: normalizeParam(params.type) || undefined,
+      genre: normalizeParam(params.genre) || undefined,
     }),
-    [initialTitle, params.order, params.status, params.type],
+    [initialTitle, params.order, params.status, params.type, params.genre],
   );
 
-  const {
-    data = [],
-    error,
-    isLoading,
-    refetch,
-  } = usePaginationAnime(catalogParams);
+  const { data = [], error, isLoading, refetch } = useCatalog(catalogParams);
 
   const setType = (type: string) => {
-    router.setParams({ type: type || undefined });
+    router.setParams({ type: type || undefined, genre: undefined });
+  };
+
+  const setGenre = (genreSlug: string) => {
+    router.setParams({ genre: genreSlug || undefined, type: undefined });
   };
 
   return (
@@ -95,6 +98,35 @@ export default function CatalogScreen() {
           );
         })}
       </View>
+
+      {genres.length > 0 && (
+        <View className="px-4 pb-2">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="gap-2"
+          >
+            {genres.map((genre) => {
+              const active = catalogParams.genre === genre.slug;
+              return (
+                <Pressable
+                  key={genre.slug}
+                  onPress={() => setGenre(genre.slug)}
+                  className={`rounded-full border px-3.5 py-2.5 ${
+                    active ? "border-primary bg-primary" : "border-border bg-surface"
+                  }`}
+                >
+                  <Text className={`text-xs font-extrabold ${active ? "text-white" : "text-text-secondary"}`}>
+                    {genre.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {isLoadingGenres && <LoadingSpinner />}
 
       {error ? (
         <ErrorState message={error.message} onRetry={() => refetch()} />

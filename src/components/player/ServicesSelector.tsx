@@ -43,12 +43,6 @@ export function ServicesSelector({
               >
                 {service.quality || "Resolusi"}
               </Text>
-              <Text
-                className={`text-[9px] font-semibold ${selected ? "text-white/70" : "text-text-muted"}`}
-                numberOfLines={1}
-              >
-                {service.name}
-              </Text>
             </View>
           </Pressable>
         );

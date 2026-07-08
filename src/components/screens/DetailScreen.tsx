@@ -5,11 +5,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAnimeDetail } from "../../hooks/useAnimeDetail";
 import type { ContentType, StreamServer } from "../../types/anime";
-import type { Otakuwatch5DownloadItem } from "../../utils/helpers";
 import {
   getMegaDownloadItems,
   isSupportedStreamService,
   normalizeParam,
+  type StreamDownloadItem,
 } from "../../utils/helpers";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 import { AnimeCard } from "../ui/AnimeCard";
@@ -213,16 +213,15 @@ function StreamRow({ stream }: { stream: StreamServer }) {
   );
 }
 
-function DownloadRow({ download }: { download: Otakuwatch5DownloadItem }) {
+function DownloadRow({ download }: { download: StreamDownloadItem }) {
   return (
     <Pressable
       onPress={() => void openExternalUrl(download.url)}
       className="mb-2.5 min-h-[52px] flex-row items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 active:opacity-70"
     >
       <Text className="flex-1 text-sm font-extrabold text-text-primary">
-        Download {download.quality || "Resolusi"}
+        {download.quality || "Resolusi"}
       </Text>
-      <Text className="text-xs font-extrabold text-text-secondary">mega</Text>
     </Pressable>
   );
 }
